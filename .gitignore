@@ -10,3 +10,4 @@ node_modules
 settings.local.json
 TODO.md
 tsconfig.tsbuildinfo
+.claude/progress

@@ -108,7 +108,8 @@ async function renderHtml() {
     // a function, so `$` in the code isn't read as a replacement pattern
     html = html.replace(
       tag,
-      () => `<div class="code-block"><pre><code>${code}</code></pre></div>`
+      () =>
+        `<div class="code-block" data-lang="ts"><pre><code>${code}</code></pre></div>`
     );
   }
 
@@ -134,6 +135,8 @@ const options: esbuild.BuildOptions = {
   // points the package's own `#platform` import at `src/platform/browser.ts`
   // (see `imports` in package.json)
   conditions: ['job-scraper-source'],
+  // the fonts `style.css` points at, copied over under hashed names
+  loader: { '.woff2': 'file' },
   minify: !dev,
   sourcemap: dev,
   logLevel: 'info',

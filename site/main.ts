@@ -12,7 +12,8 @@ import {
   type ListedJob,
 } from '../src/index.ts';
 import { descriptionHtml } from './description.ts';
-import { enhanceDocs } from './docs.ts';
+import { addCopyButton, enhanceDocs, enhanceTabs } from './docs.ts';
+import { highlightTs } from './highlight.ts';
 import { sanitizeHtml } from './sanitize.ts';
 
 type Mode = 'company' | 'job';
@@ -37,7 +38,7 @@ const placeholders: Record<Mode, string[]> = {
     'https://jobs.ashbyhq.com/zapier',
     'https://careers.duolingo.com',
     'Klaviyo',
-    'https://jobs.lever.co/palantir',
+    'https://jobs.lever.co/spotify',
   ],
   job: [
     'https://job-boards.greenhouse.io/airbnb/jobs/7712345',
@@ -92,6 +93,7 @@ const input = $<HTMLInputElement>('#demo-input');
 const button = $<HTMLButtonElement>('#demo button[type=submit]');
 const exampleList = $<HTMLUListElement>('#examples');
 const result = $<HTMLDivElement>('#result');
+const inCode = $<HTMLElement>('#in-code');
 
 /** Builds an element. Children are only ever set as text, never as HTML */
 function h<K extends keyof HTMLElementTagNameMap>(
@@ -115,7 +117,21 @@ let placeholderIndex = 0;
 function showPlaceholder() {
   const list = placeholders[mode()];
   input.placeholder = `e.g. ${list[placeholderIndex % list.length]}`;
+  showInCode();
 }
+
+/** The call the demo is about to make, for whatever's typed (or suggested) */
+function showInCode() {
+  const fn = mode() === 'company' ? 'listCompanyJobs' : 'fetchJob';
+  const value = input.value.trim() || input.placeholder.replace(/^e\.g\. /, '');
+  // highlightTs escapes everything it's given
+  inCode.innerHTML = highlightTs(
+    `await ${fn}('${value.replace(/['\\]/g, '\\$&')}')`
+  );
+  inCode.parentElement!.hidden = false;
+}
+
+input.addEventListener('input', showInCode);
 setInterval(() => {
   placeholderIndex++;
   showPlaceholder();
@@ -152,6 +168,14 @@ form.addEventListener('submit', (event) => {
   if (value) void run(mode(), value);
 });
 
+const status = (text: string) =>
+  h(
+    'p',
+    { class: 'status' },
+    h('span', { class: 'spinner', 'aria-hidden': 'true' }),
+    text
+  );
+
 $<HTMLButtonElement>('#clear-cache').addEventListener('click', async () => {
   await clearCache();
   setResult(h('p', { class: 'status' }, 'Cache cleared.'));
@@ -173,11 +197,12 @@ async function runExample(example: Example) {
   const runId = ++currentRun;
   const currentMode = mode();
   setBusy(true);
-  setResult(h('p', { class: 'status' }, 'Finding a current example…'));
+  setResult(status('Finding a current example…'));
   try {
     const value = await example.input();
     if (runId !== currentRun) return;
     input.value = value;
+    showInCode();
     await run(currentMode, value);
   } catch (error) {
     if (runId !== currentRun) return;
@@ -200,16 +225,23 @@ async function runExample(example: Example) {
 async function run(currentMode: Mode, value: string) {
   const runId = ++currentRun;
   setBusy(true);
-  setResult(h('p', { class: 'status' }, 'Fetching…'));
+  setResult(status('Fetching…'));
   const start = performance.now();
   try {
-    const nodes =
+    const data =
       currentMode === 'company'
-        ? renderJobsList(await listCompanyJobs(value))
-        : renderJob(await fetchJob(value));
+        ? await listCompanyJobs(value)
+        : await fetchJob(value);
     if (runId !== currentRun) return;
     const elapsed = Math.round(performance.now() - start);
-    setResult(...nodes, h('p', { class: 'elapsed' }, `Took ${elapsed} ms`));
+    const rendered = Array.isArray(data)
+      ? renderJobsList(data)
+      : renderJob(data);
+    setResult(
+      ...(Array.isArray(data) ? [renderCount(data)] : []),
+      renderViews(rendered, data),
+      h('p', { class: 'elapsed' }, `Took ${elapsed} ms`)
+    );
   } catch (error) {
     if (runId !== currentRun) return;
     setResult(
@@ -229,15 +261,53 @@ async function run(currentMode: Mode, value: string) {
 const jobLink = (job: ListedJob) =>
   h('a', { href: job.url, target: '_blank', rel: 'noopener' }, job.title);
 
-function renderJobsList(jobs: ListedJob[]): Node[] {
-  const count = h(
+const renderCount = (jobs: ListedJob[]) =>
+  h(
     'p',
     { class: 'count' },
     `${jobs.length.toLocaleString()} open ${jobs.length === 1 ? 'job' : 'jobs'}`
   );
-  if (!jobs.length) return [count];
+
+// which of the result's views is showing, kept across runs
+let resultView = 0;
+
+/** The result as rendered, with a tab to see the raw value returned instead */
+function renderViews(rendered: Node[], data: unknown): Node {
+  const json = h(
+    'div',
+    { class: 'code-block', 'data-lang': 'json' },
+    h('pre', {})
+  );
+  // highlightTs escapes everything it's given
+  json.firstElementChild!.innerHTML = `<code>${highlightTs(JSON.stringify(data, null, 2))}</code>`;
+  addCopyButton(json);
+
+  const views = h(
+    'div',
+    { class: 'tabs tabs-small', 'data-label': 'Result view' },
+    h(
+      'div',
+      { class: 'tab-panel' },
+      h('h3', { class: 'tab-label' }, 'Rendered'),
+      ...rendered
+    ),
+    h(
+      'div',
+      { class: 'tab-panel' },
+      h('h3', { class: 'tab-label' }, 'JSON'),
+      json
+    )
+  );
+  enhanceTabs(views, {
+    selected: resultView,
+    onSelect: (index) => (resultView = index),
+  });
+  return views;
+}
+
+function renderJobsList(jobs: ListedJob[]): Node[] {
+  if (!jobs.length) return [h('p', { class: 'status' }, 'No open jobs.')];
   return [
-    count,
     h(
       'ul',
       { class: 'jobs' },
@@ -255,8 +325,12 @@ function renderJobsList(jobs: ListedJob[]): Node[] {
 
 function renderJob(job: Job): Node[] {
   return [
-    h('h2', { class: 'job-title' }, jobLink(job)),
-    h('p', { class: 'location' }, job.location),
+    h(
+      'div',
+      { class: 'job-head' },
+      h('h2', { class: 'job-title' }, jobLink(job)),
+      h('span', { class: 'location' }, job.location)
+    ),
     ...renderContent(job.content),
   ];
 }
@@ -313,15 +387,27 @@ function renderError(error: unknown, call: NodeCall): Node {
     `node --input-type=module -e '${script.replaceAll("'", `'\\''`)}'`,
   ].join('\n');
 
+  const code = h(
+    'div',
+    { class: 'code-block', 'data-lang': 'sh' },
+    h('pre', {}, h('code', {}, snippet))
+  );
+  addCopyButton(code);
+
   return h(
     'div',
     { class: 'notice' },
     h(
-      'p',
+      'div',
       {},
-      "This company's job board blocks requests from browsers (CORS), so it can't be reached from this live demo. It works when the package runs in Node:"
-    ),
-    h('pre', {}, h('code', {}, snippet))
+      h('p', { class: 'notice-title' }, 'Works locally, not in this demo'),
+      h(
+        'p',
+        {},
+        "This company's job board blocks requests from browsers (CORS), so the demo can't reach it. The package works the same from Node:"
+      ),
+      code
+    )
   );
 }
 

@@ -1,6 +1,6 @@
 <section id="install" aria-labelledby="install-title">
   <h2 id="install-title">Install</h2>
-  <div class="code-block">
+  <div class="code-block" data-lang="sh">
     <pre><code>yarn add @chrisdothtml/job-scraper</code></pre>
   </div>
   <p>
@@ -40,7 +40,7 @@
       <h3><code>listCompanyJobs(input)</code></h3>
     </summary>
     <p>Every job a company currently has posted.</p>
-    <div class="tabs" data-label="listCompanyJobs input">
+    <div class="tabs tabs-small" data-label="listCompanyJobs input">
       <div class="tab-panel">
         <h4 class="tab-label">By name</h4>
         <pre data-snippet="api#list-name"></pre>
@@ -68,7 +68,7 @@
       <h3><code>fetchJob(input)</code></h3>
     </summary>
     <p>A single posting, with its full content.</p>
-    <div class="tabs" data-label="fetchJob input">
+    <div class="tabs tabs-small" data-label="fetchJob input">
       <div class="tab-panel">
         <h4 class="tab-label">By posting URL</h4>
         <pre data-snippet="api#job-url"></pre>
@@ -235,7 +235,7 @@
       </div>
       <div class="tab-panel">
         <h4 class="tab-label">Environment (Node only)</h4>
-        <div class="code-block">
+        <div class="code-block" data-lang="env">
           <pre><code>SERP_API_TOKEN=...  # or SERPAPI_KEY, or SERPAPI_API_KEY
 SERPAPI_SEARCH_LIMIT=100
 SERPAPI_SEARCH_PERIOD=month</code></pre>
@@ -448,7 +448,7 @@ SERPAPI_SEARCH_PERIOD=month</code></pre>
       </div>
       <div class="tab-panel">
         <h4 class="tab-label">Environment (Node only)</h4>
-        <div class="code-block">
+        <div class="code-block" data-lang="env">
           <pre><code>JOB_SCRAPER_CACHE=off
 JOB_SCRAPER_CACHE_TTL=3600000</code></pre>
         </div>
@@ -514,44 +514,44 @@ JOB_SCRAPER_CACHE_TTL=3600000</code></pre>
         <tbody>
           <tr>
             <td><code>GreenhouseScraper</code></td>
-            <td>Yes</td>
-            <td>Yes</td>
+            <td><span class="yes">Yes</span></td>
+            <td><span class="yes">Yes</span></td>
             <td>Also handles boards embedded via <code>?gh_jid=</code></td>
           </tr>
           <tr>
             <td><code>AshbyScraper</code></td>
-            <td>Yes</td>
-            <td>Yes</td>
+            <td><span class="yes">Yes</span></td>
+            <td><span class="yes">Yes</span></td>
             <td></td>
           </tr>
           <tr>
             <td><code>LeverScraper</code></td>
-            <td>Yes</td>
-            <td>Yes</td>
+            <td><span class="yes">Yes</span></td>
+            <td><span class="yes">Yes</span></td>
             <td></td>
           </tr>
           <tr>
             <td><code>WorkableScraper</code></td>
-            <td>Yes</td>
-            <td>No</td>
+            <td><span class="yes">Yes</span></td>
+            <td><span class="no">No</span></td>
             <td></td>
           </tr>
           <tr>
             <td><code>SmartRecruitersScraper</code></td>
-            <td>Yes</td>
-            <td>Yes</td>
+            <td><span class="yes">Yes</span></td>
+            <td><span class="yes">Yes</span></td>
             <td>PascalCase slugs</td>
           </tr>
           <tr>
             <td><code>RipplingScraper</code></td>
-            <td>Yes</td>
-            <td>Yes</td>
+            <td><span class="yes">Yes</span></td>
+            <td><span class="yes">Yes</span></td>
             <td></td>
           </tr>
           <tr>
             <td><code>WorkdayScraper</code></td>
-            <td>No</td>
-            <td>No</td>
+            <td><span class="no">No</span></td>
+            <td><span class="no">No</span></td>
             <td>
               Slug is <code>tenant.pod.site</code>, e.g.
               <code>autodesk.wd1.Ext</code>
@@ -559,38 +559,38 @@ JOB_SCRAPER_CACHE_TTL=3600000</code></pre>
           </tr>
           <tr>
             <td><code>GitHubScraper</code></td>
-            <td>No</td>
-            <td>No</td>
+            <td><span class="no">No</span></td>
+            <td><span class="no">No</span></td>
             <td>iCIMS-backed</td>
           </tr>
           <tr>
             <td><code>GoogleScraper</code></td>
-            <td>No</td>
-            <td>No</td>
+            <td><span class="no">No</span></td>
+            <td><span class="no">No</span></td>
             <td></td>
           </tr>
           <tr>
             <td><code>NetflixScraper</code></td>
-            <td>No</td>
-            <td>No</td>
+            <td><span class="no">No</span></td>
+            <td><span class="no">No</span></td>
             <td></td>
           </tr>
           <tr>
             <td><code>NvidiaScraper</code></td>
-            <td>No</td>
-            <td>No</td>
+            <td><span class="no">No</span></td>
+            <td><span class="no">No</span></td>
             <td>Eightfold-backed</td>
           </tr>
           <tr>
             <td><code>ShopifyScraper</code></td>
-            <td>No</td>
-            <td>No</td>
+            <td><span class="no">No</span></td>
+            <td><span class="no">No</span></td>
             <td></td>
           </tr>
           <tr>
             <td><code>UberScraper</code></td>
-            <td>No</td>
-            <td>No</td>
+            <td><span class="no">No</span></td>
+            <td><span class="no">No</span></td>
             <td>Oracle Fusion Recruiting Cloud-backed</td>
           </tr>
         </tbody>

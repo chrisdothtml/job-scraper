@@ -14,59 +14,94 @@
   </head>
   <body>
     <header class="site-header">
-      <a class="brand" href="./">job-scraper</a>
-      <nav>
-        <a href="https://github.com/chrisdothtml/job-scraper">GitHub</a>
-        <a href="https://www.npmjs.com/package/@chrisdothtml/job-scraper"
-          >npm</a
-        >
-      </nav>
+      <div class="wrap">
+        <a class="brand" href="./">job-scraper</a>
+        <nav aria-label="Project links">
+          <a href="https://github.com/chrisdothtml/job-scraper"
+            >GitHub<svg
+              width="14"
+              height="14"
+              viewBox="0 0 16 16"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true">
+              <path d="M5 11 11 5M6 5h5v5" /></svg
+          ></a>
+          <a href="https://www.npmjs.com/package/@chrisdothtml/job-scraper"
+            >npm<svg
+              width="14"
+              height="14"
+              viewBox="0 0 16 16"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true">
+              <path d="M5 11 11 5M6 5h5v5" /></svg
+          ></a>
+        </nav>
+      </div>
     </header>
 
     <main>
-      <section class="hero" aria-labelledby="hero-title">
-        <h1 id="hero-title">List jobs for 15k+ companies, for free</h1>
+      <section class="wrap hero" aria-labelledby="hero-title">
+        <h1 id="hero-title">List jobs for <em>15k+</em> companies, for free</h1>
         <p class="lede">
           Lightweight, http-only scrapers for the popular job boards. Give it a
           company name or any URL a person would paste, and it works out which
-          board to ask. Try it live: this demo runs the package right here in
-          your browser.
+          board to ask.
+          <strong
+            >Try it live: this demo runs the package right here in your
+            browser.</strong
+          >
         </p>
 
         <form id="demo" class="demo" autocomplete="off">
           <fieldset class="modes">
             <legend class="visually-hidden">What to fetch</legend>
-            <label>
-              <input type="radio" name="mode" value="company" checked />
-              Fetch all company jobs
-            </label>
-            <label>
-              <input type="radio" name="mode" value="job" />
-              Fetch job for company
-            </label>
+            <div class="segmented">
+              <label>
+                <input type="radio" name="mode" value="company" checked />
+                Fetch all company jobs
+              </label>
+              <label>
+                <input type="radio" name="mode" value="job" />
+                Fetch job for company
+              </label>
+            </div>
           </fieldset>
 
-          <div class="query">
-            <label for="demo-input" class="visually-hidden"
-              >Company name or URL</label
-            >
-            <input
-              id="demo-input"
-              name="input"
-              type="text"
-              required
-              spellcheck="false"
-              autocapitalize="off" />
-            <button type="submit">Fetch</button>
-          </div>
+          <div class="demo-body">
+            <div class="query">
+              <label for="demo-input" class="visually-hidden"
+                >Company name or URL</label
+              >
+              <input
+                id="demo-input"
+                name="input"
+                type="text"
+                required
+                spellcheck="false"
+                autocapitalize="off" />
+              <button type="submit">Fetch</button>
+            </div>
 
-          <div class="examples">
-            <span id="examples-label">Try:</span>
-            <ul id="examples" aria-labelledby="examples-label"></ul>
+            <div class="examples">
+              <span id="examples-label">Try:</span>
+              <ul id="examples" aria-labelledby="examples-label"></ul>
+            </div>
+
+            <p class="in-code" hidden>
+              <span>In code</span><code id="in-code"></code>
+            </p>
+
+            <div id="result" class="result" aria-live="polite"></div>
           </div>
         </form>
-
-        <div id="result" class="result" aria-live="polite"></div>
 
         <p class="fineprint">
           Responses are cached in your browser.
@@ -76,7 +111,7 @@
         </p>
       </section>
 
-      <div id="docs" class="docs">
+      <div id="docs" class="wrap docs">
         <!-- docs.html -->
       </div>
     </main>

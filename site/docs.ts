@@ -10,7 +10,13 @@ let nextId = 0;
  * `.tab-label` per panel becomes its tab, and the arrow keys (plus Home/End)
  * move between them.
  */
-function enhanceTabs(group: HTMLElement) {
+export function enhanceTabs(
+  group: HTMLElement,
+  {
+    selected = 0,
+    onSelect,
+  }: { selected?: number; onSelect?: (index: number) => void } = {}
+) {
   const panels = [
     ...group.querySelectorAll<HTMLElement>(':scope > .tab-panel'),
   ];
@@ -27,7 +33,10 @@ function enhanceTabs(group: HTMLElement) {
     tab.textContent = label?.textContent ?? `Tab ${i + 1}`;
     tab.setAttribute('role', 'tab');
     tab.setAttribute('aria-controls', `${id}-panel`);
-    tab.addEventListener('click', () => select(i));
+    tab.addEventListener('click', () => {
+      select(i);
+      onSelect?.(i);
+    });
     label?.remove();
 
     panel.id = `${id}-panel`;
@@ -59,17 +68,26 @@ function enhanceTabs(group: HTMLElement) {
     if (current === -1 || next === undefined) return;
     event.preventDefault();
     select(next, true);
+    onSelect?.(next);
   });
 
   list.append(...tabs);
   group.prepend(list);
-  select(0);
+  select(selected);
 }
 
-/** Adds a copy button to each code block, where the clipboard is available */
-function addCopyButton(block: HTMLElement) {
+/**
+ * Adds a copy button to a code block, where the clipboard is available, in a
+ * bar that also names the block's `data-lang` (shown only where there's no
+ * hover, and the bar sits above the code)
+ */
+export function addCopyButton(block: HTMLElement) {
   const code = block.querySelector('code');
   if (!code || !navigator.clipboard) return;
+
+  const lang = document.createElement('span');
+  lang.className = 'code-lang';
+  lang.textContent = block.dataset['lang'] ?? '';
 
   const button = document.createElement('button');
   button.type = 'button';
@@ -84,7 +102,10 @@ function addCopyButton(block: HTMLElement) {
     }
     setTimeout(() => (button.textContent = 'Copy'), 1500);
   });
-  block.append(button);
+  const bar = document.createElement('div');
+  bar.className = 'code-bar';
+  bar.append(lang, button);
+  block.prepend(bar);
 }
 
 /** Opens the `<details>` a link points into, so `#caching` lands somewhere */
@@ -99,7 +120,9 @@ function openTarget() {
 }
 
 export function enhanceDocs() {
-  document.querySelectorAll<HTMLElement>('.tabs').forEach(enhanceTabs);
+  document
+    .querySelectorAll<HTMLElement>('.tabs')
+    .forEach((group) => enhanceTabs(group));
   document.querySelectorAll<HTMLElement>('.code-block').forEach(addCopyButton);
   openTarget();
   addEventListener('hashchange', openTarget);

@@ -80,6 +80,12 @@ yarn typecheck
 yarn test
 ```
 
+## Releasing
+
+Publish a [GitHub release](https://github.com/chrisdothtml/job-scraper/releases/new) with a tag like `v1.2.3`. The [release workflow](.github/workflows/release.yml) typechecks, lints, sets `package.json`'s version from the tag (not committed), and publishes to npm with provenance. Prerelease tags (`v1.2.3-beta.1`) publish under the `next` dist-tag.
+
+One-time setup: on npmjs.com, add a trusted publisher for the package pointing at the `chrisdothtml/job-scraper` repo and the `release.yml` workflow. No npm token is needed. (npm only lets you configure a trusted publisher on a package that already exists, so the very first publish has to be done manually.)
+
 ## Dependencies
 
 This package ships with zero runtime dependencies, and that's deliberate: it's a thin wrapper over `fetch`. If something genuinely needs a dependency (a DOM-scraping fallback needing Playwright, say), raise it before writing the code.

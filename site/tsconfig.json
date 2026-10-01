@@ -1,0 +1,11 @@
+{
+  // The site runs in browsers, so it gets the DOM lib; the library itself
+  // doesn't, which keeps it from leaning on browser-only globals
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "rootDir": "..",
+    "lib": ["esnext", "dom", "dom.iterable"]
+  },
+  "include": ["./**/*"],
+  "exclude": []
+}

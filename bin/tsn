@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+###
+# A drop-in for running `node` that enables node to run TypeScript modules directly
+###
+
+volta="$HOME/.volta/bin/volta"
+if [ -e "$volta" ]; then
+  node="$($volta which node)"
+else
+  node="$(which node)"
+fi
+
+$node --experimental-transform-types --no-warnings --env-file=.env "${@}"

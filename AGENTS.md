@@ -1,0 +1,1 @@
+This repo uses Typescript with node.js, with Yarn as the dependency manager. You can use `./bin/tsn` as a drop-in replacement for the `node` binary. I highly prefer to avoid adding additional third-party dependencies to my project, unless it abstracts very complex functionality; otherwise add a utility.

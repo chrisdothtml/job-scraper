@@ -1,0 +1,12 @@
+.codegraph
+.data
+.DS_Store
+.env
+.playwright-mcp
+.remember
+.yarn
+dist
+node_modules
+settings.local.json
+TODO.md
+tsconfig.tsbuildinfo

@@ -17,6 +17,7 @@
     "url": "git+https://github.com/chrisdothtml/job-scraper.git"
   },
   "type": "module",
+  "packageManager": "yarn@4.13.0",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",

@@ -11,4 +11,4 @@ else
   node="$(which node)"
 fi
 
-$node --experimental-transform-types --no-warnings --env-file=.env "${@}"
+$node --experimental-transform-types --no-warnings --env-file-if-exists=.env "${@}"

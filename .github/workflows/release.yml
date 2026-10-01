@@ -45,7 +45,8 @@ jobs:
           fi
           npm version --no-git-tag-version --allow-same-version "$VERSION"
           # npm requires an explicit dist-tag for prerelease versions
-          if [[ "$VERSION" == *-* ]]; then
+          # ignore build metadata (`+...`), which may itself contain `-`
+          if [[ "${VERSION%%+*}" == *-* ]]; then
             echo "dist_tag=next" >> "$GITHUB_OUTPUT"
           else
             echo "dist_tag=latest" >> "$GITHUB_OUTPUT"

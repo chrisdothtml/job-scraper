@@ -1,3 +1,4 @@
+import { CorsError } from './cache.ts';
 import {
   addCompanyDomain,
   findCompany,
@@ -26,9 +27,20 @@ import { sniffPage } from './sniff.ts';
 export class UnresolvedCompanyError extends Error {
   constructor(
     public input: string,
-    message?: string
+    message?: string,
+    /**
+     * Whether the browser blocked any board or page tried along the way (see
+     * `CorsError`). When it did, the company may well resolve from Node,
+     * which doesn't enforce CORS.
+     */
+    public blocked = false
   ) {
-    super(message ?? `Could not resolve a scraper for '${input}'`);
+    super(
+      (message ?? `Could not resolve a scraper for '${input}'`) +
+        (blocked
+          ? ` (some job boards were blocked by the browser's CORS policy; it may resolve from Node)`
+          : '')
+    );
     this.name = 'UnresolvedCompanyError';
   }
 }
@@ -109,6 +121,10 @@ export async function resolveJob(
   const names = new NameCandidates();
   names.add(options.company);
 
+  // what went wrong with candidates along the way, so that a failure can say
+  // *why* rather than shrugging with a generic "not found"
+  const misses: ProbeLog = { shapeErrors: [], blocked: false };
+
   /**
    * Records the company's own careers domain on the way out, so the next URL
    * on it is a plain lookup. Board hosts are excluded: `parseUrl` already
@@ -160,6 +176,7 @@ export async function resolveJob(
     // 4. read the page itself. It's likely a board embedded on the company's
     // own domain, and the markup still has to name the board it loads
     const page = await sniffPage(url.href);
+    if (page.blocked) misses.blocked = true;
     const [embedded] = page.boards;
     if (embedded) {
       const known = await findCompany(embedded.slug);
@@ -187,7 +204,8 @@ export async function resolveJob(
     if (names.empty && !slug) {
       throw new UnresolvedCompanyError(
         url.href,
-        `No scraper recognizes '${url.href}'`
+        `No scraper recognizes '${url.href}'`,
+        misses.blocked
       );
     }
   }
@@ -214,17 +232,12 @@ export async function resolveJob(
     ? [scraper]
     : [...hinted, ...discoverableScrapers.filter((s) => !hinted.includes(s))];
 
-  // collects fallback-shape mismatches hit along the way, so that when
-  // nothing else pans out, resolution can say *why* rather than shrugging
-  // with a generic "not found" (see `BoardShapeError`)
-  const shapeErrors: BoardShapeError[] = [];
-
   const found = await discoverBoard(
     names.all,
     slug,
     candidates,
     minJobs,
-    shapeErrors
+    misses
   );
   if (found) {
     await registerCompany(found);
@@ -244,7 +257,7 @@ export async function resolveJob(
 
       using instance = new scrapers[board.scraper](board.slug);
       // the search told us where to look; the board still has to confirm it
-      if (!(await hasCompanyBoard(instance, minJobs, shapeErrors))) continue;
+      if (!(await hasCompanyBoard(instance, minJobs, misses))) continue;
 
       const company = { name, scraper: board.scraper, slug: board.slug };
       await registerCompany(company);
@@ -259,24 +272,34 @@ export async function resolveJob(
   // nothing resolved; if a candidate along the way looked like the right
   // board but a fallback couldn't parse its page, that's more useful to the
   // caller than a blanket "couldn't find it"
-  if (shapeErrors.length > 0) throw shapeErrors[0];
-  throw new UnresolvedCompanyError(name);
+  if (misses.shapeErrors.length > 0) throw misses.shapeErrors[0];
+  throw new UnresolvedCompanyError(name, undefined, misses.blocked);
+}
+
+interface ProbeLog {
+  /** Fallback page-shape mismatches (see `BoardShapeError`) */
+  shapeErrors: BoardShapeError[];
+  /** Whether the browser refused any request (see `CorsError`) */
+  blocked: boolean;
 }
 
 /**
- * Runs `hasCompanyBoard`, routing a `BoardShapeError` into `shapeErrors`
- * instead of letting it abort the candidate loop it's called from.
+ * Runs `hasCompanyBoard`, recording a `BoardShapeError` or `CorsError` in
+ * `misses` instead of letting it abort the candidate loop it's called from.
+ * A board the browser won't let us reach is no match, not a failure: the
+ * company may well be on one of the boards it can reach.
  */
 async function hasCompanyBoard(
   instance: Scraper,
   minJobs: number,
-  shapeErrors: BoardShapeError[]
+  misses: ProbeLog
 ): Promise<boolean> {
   try {
     return await instance.hasCompanyBoard(minJobs);
   } catch (err) {
-    if (!(err instanceof BoardShapeError)) throw err;
-    shapeErrors.push(err);
+    if (err instanceof BoardShapeError) misses.shapeErrors.push(err);
+    else if (err instanceof CorsError) misses.blocked = true;
+    else throw err;
     return false;
   }
 }
@@ -457,7 +480,7 @@ async function discoverBoard(
   slug: string | undefined,
   candidates: ScraperName[],
   minJobs: number,
-  shapeErrors: BoardShapeError[]
+  misses: ProbeLog
 ): Promise<Company | null> {
   // every reading of the name gets probed, since a careers-site name and the
   // company's real one produce different slugs (`pinterestcareers` vs
@@ -472,7 +495,7 @@ async function discoverBoard(
 
       return slugs.map(async (slug) => {
         using instance = new ScraperClass(slug);
-        const exists = await hasCompanyBoard(instance, minJobs, shapeErrors);
+        const exists = await hasCompanyBoard(instance, minJobs, misses);
         return exists ? { name: companyName, scraper, slug } : null;
       });
     });

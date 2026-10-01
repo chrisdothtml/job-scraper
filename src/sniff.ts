@@ -1,4 +1,4 @@
-import { cachedFetch } from './cache.ts';
+import { cachedFetch, CorsError } from './cache.ts';
 import { scraperNames, scrapers, type ScraperName } from './scrapers/index.ts';
 import { type ParsedUrl } from './scrapers/Scraper.ts';
 import { time } from './utils/misc.ts';
@@ -97,6 +97,11 @@ export interface SniffedPage {
   boards: SniffedBoard[];
   /** Company names the page claims for itself, most trustworthy first */
   names: string[];
+  /**
+   * Whether the browser refused to fetch the page (see `CorsError`), in
+   * which case the empty results say nothing about the page itself
+   */
+  blocked: boolean;
 }
 
 /**
@@ -116,9 +121,13 @@ export async function sniffPage(url: string): Promise<SniffedPage> {
     });
 
     const html = await res.text();
-    return { boards: findBoardsInPage(html), names: findNamesInPage(html) };
-  } catch {
-    return { boards: [], names: [] };
+    return {
+      boards: findBoardsInPage(html),
+      names: findNamesInPage(html),
+      blocked: false,
+    };
+  } catch (err) {
+    return { boards: [], names: [], blocked: err instanceof CorsError };
   }
 }
 

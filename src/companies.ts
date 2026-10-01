@@ -1,7 +1,7 @@
-import fs from 'node:fs/promises';
+import { platform } from '#platform';
 import { seedCompanies } from './companies.seed.ts';
 import { pkgVersion } from './constants.ts';
-import { companiesFile, writeFileAtomic } from './paths.ts';
+import { companiesFile } from './paths.ts';
 import {
   isScraperName,
   scraperNames,
@@ -209,7 +209,7 @@ export async function registerCompany(
   return entry;
 }
 
-/** Drops the in-memory registry, so the next load re-reads from disk */
+/** Drops the in-memory registry, so the next load re-reads it from storage */
 export function clearCompaniesCache(): void {
   cache = null;
   domainIndex = null;
@@ -294,13 +294,13 @@ function isStoredCompany(entry: unknown): entry is StoredCompany {
 
 // lets a developer work on the registry's shape without the stored file
 // (or its writes) getting in the way; each load starts fresh from the seed
-const registryDisabled = Boolean(process.env.DISABLE_COMPANY_REGISTRY);
+const registryDisabled = Boolean(platform.env('DISABLE_COMPANY_REGISTRY'));
 
 async function readRegistry(): Promise<Registry | null> {
   if (registryDisabled) return null;
 
   try {
-    const parsed = JSON.parse(await fs.readFile(companiesFile, 'utf8'));
+    const parsed = JSON.parse((await platform.readText(companiesFile)) ?? '');
     if (!parsed || !Array.isArray(parsed.companies)) return null;
     return parsed as Registry;
   } catch {
@@ -316,7 +316,7 @@ async function writeRegistry(entries: StoredCompany[]): Promise<void> {
     companies: [...entries].sort((a, b) => a.name.localeCompare(b.name)),
   };
 
-  await writeFileAtomic(
+  await platform.writeText(
     companiesFile,
     JSON.stringify(registry, null, 2) + '\n'
   );

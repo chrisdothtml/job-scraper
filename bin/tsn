@@ -11,4 +11,6 @@ else
   node="$(which node)"
 fi
 
-$node --experimental-transform-types --no-warnings --env-file-if-exists=.env "${@}"
+# `job-scraper-source` points the package's own `#platform` import at the
+# TypeScript sources rather than `dist` (see `imports` in package.json)
+$node --conditions=job-scraper-source --experimental-transform-types --no-warnings --env-file-if-exists=.env "${@}"

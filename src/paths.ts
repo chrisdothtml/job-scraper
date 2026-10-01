@@ -1,7 +1,4 @@
-import fs from 'node:fs/promises';
-import os from 'node:os';
-import path from 'node:path';
-import process from 'node:process';
+import { platform } from '#platform';
 
 /**
  * Where this package keeps its mutable state: the company registry, the HTTP
@@ -11,37 +8,11 @@ import process from 'node:process';
  * that every project on the machine shares it: a company should only need
  * discovering once, and a board fetched by one project shouldn't be fetched
  * again by the next. Override with `JOB_SCRAPER_DATA_DIR`.
+ *
+ * Node only. Browsers have no filesystem, so there these are just the names
+ * the same state goes by (the Cache API cache, and `localStorage` keys).
  */
-export const dataDir = path.resolve(
-  process.env.JOB_SCRAPER_DATA_DIR || path.join(os.homedir(), '.job-scraper')
-);
+export const dataDir: string = platform.dataDir;
 
-export const cacheDir = path.join(dataDir, 'cache');
-export const companiesFile = path.join(dataDir, 'companies.json');
-
-const ensured = new Set<string>();
-
-/** Creates a directory once per process; safe to call on every write */
-export async function ensureDir(dir: string): Promise<string> {
-  if (!ensured.has(dir)) {
-    await fs.mkdir(dir, { recursive: true });
-    ensured.add(dir);
-  }
-  return dir;
-}
-
-/**
- * Writes a file atomically. The data dir is shared across every project on
- * the machine, so two processes can be writing the registry at once; a
- * temp-then-rename keeps a reader from ever seeing a half-written file.
- */
-export async function writeFileAtomic(
-  filePath: string,
-  contents: string
-): Promise<void> {
-  await ensureDir(path.dirname(filePath));
-
-  const temp = `${filePath}.${process.pid}.tmp`;
-  await fs.writeFile(temp, contents);
-  await fs.rename(temp, filePath);
-}
+export const cacheDir: string = platform.cacheDir;
+export const companiesFile: string = platform.companiesFile;

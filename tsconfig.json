@@ -4,6 +4,7 @@
     "outDir": "dist",
     "module": "nodenext",
     "moduleResolution": "nodenext",
+    "customConditions": ["job-scraper-source"],
     "target": "esnext",
     "lib": ["esnext"],
     "types": ["node"],

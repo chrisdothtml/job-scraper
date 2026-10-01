@@ -9,6 +9,7 @@ import { type Job, type ListedJob } from './scrapers/Scraper.ts';
 export {
   clearCache,
   configureCache,
+  CorsError,
   getCacheConfig,
   HttpError,
   type CacheConfig,

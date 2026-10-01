@@ -18,6 +18,7 @@ import {
 } from '../scrapers/Scraper.ts';
 import { configureSearch, getSearchConfig } from '../search.ts';
 import { findBoardsInPage, findNamesInPage } from '../sniff.ts';
+import { testScraper } from './testScraper.ts';
 
 // hand-picked so that every scraper is exercised at least once
 const TEST_COMPANIES = [
@@ -216,7 +217,7 @@ test('Ensure Scrapers work', async (t) => {
     const ScraperClass = getScraper(company.scraper);
     await t.test(`${ScraperClass.name} (${company.slug})`, async (t) => {
       using scraper = new ScraperClass(company.slug);
-      await scraper._test(t);
+      await testScraper(scraper, t);
     });
   }
 });

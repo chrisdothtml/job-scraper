@@ -1,5 +1,4 @@
-import builtinAssert from 'node:assert';
-import { type TestContext } from 'node:test';
+import { CorsError } from '../cache.ts';
 
 export interface ListedJob {
   /** Stable identifier, usable with `getJobContent` */
@@ -154,8 +153,9 @@ export abstract class Scraper {
       return jobs.filter((job) => !isPlaceholderJob(job)).length >= minJobs;
     } catch (err) {
       // a fallback's page-shape mismatch is a signal worth surfacing, not a
-      // plain "this slug doesn't exist" miss; let it propagate
-      if (err instanceof BoardShapeError) throw err;
+      // plain "this slug doesn't exist" miss; let it propagate. So is a
+      // browser blocking the board, which says nothing about the slug at all
+      if (err instanceof BoardShapeError || err instanceof CorsError) throw err;
       return false;
     }
   }
@@ -178,26 +178,6 @@ export abstract class Scraper {
       content,
     };
   }
-
-  async _test(t?: TestContext) {
-    // allow to be called manually or as part of a node test run
-    const assert: typeof builtinAssert = (t?.assert ??
-      builtinAssert) as typeof builtinAssert;
-    const jobs = await this.getJobsList(true);
-
-    const firstJob = jobs[0];
-    assert.ok(isListedJob(firstJob));
-
-    const content = await this.getJobContent(firstJob.id);
-    assert.ok(typeof content === 'string', 'Job content is a string');
-    assert.ok(content.length > 0, 'Job content is not empty');
-
-    // a per-job fetch commonly drops fields the listing had (location is the
-    // usual casualty); catch that here rather than downstream, since
-    // `getJobContent` alone can't tell the difference
-    const job = await this.getJob(firstJob.id);
-    assert.ok(isListedJob(job));
-  }
 }
 
 /**
@@ -212,59 +192,6 @@ export interface ScraperSubclass {
   readonly urlHintParams: readonly string[];
   slugCandidates(companyName: string): string[];
   parseUrl(url: URL): ParsedUrl | null;
-}
-
-const listedJobType = {
-  title: 'Software Engineer',
-  location: 'United States',
-  id: '00000',
-  url: 'https://foo.com/bar',
-};
-
-function isListedJob(job: { [key: string]: any }): boolean {
-  const missingKeys: string[] = [];
-  const typeMisMatches: string[] = [];
-  const emptyValues: string[] = [];
-  for (const [key, value] of Object.entries(listedJobType)) {
-    if (!job.hasOwnProperty(key)) {
-      missingKeys.push(key);
-      continue;
-    }
-
-    const actualValue = job[key];
-    const expectedType = typeof value;
-    const actualType = typeof actualValue;
-    if (actualType !== expectedType) {
-      typeMisMatches.push(
-        `'${key}': '${actualType}' expected to be '${expectedType}'`
-      );
-      continue;
-    }
-
-    if (expectedType === 'string' && actualValue.length === 0) {
-      emptyValues.push(key);
-      continue;
-    }
-  }
-
-  const errorLines: string[] = [];
-  if (missingKeys.length > 0) {
-    errorLines.push(`Missing keys: ${missingKeys.join(', ')}`);
-  }
-  if (typeMisMatches.length > 0) {
-    errorLines.push(`Incorrect value types: ${typeMisMatches.join(', ')}`);
-  }
-  if (emptyValues.length > 0) {
-    errorLines.push(`Empty values: ${emptyValues.join(', ')}`);
-  }
-
-  if (errorLines.length > 0) {
-    throw new Error(
-      `Job validation errors:\n` + errorLines.map((l) => '  - ' + l).join('\n')
-    );
-  }
-
-  return true;
 }
 
 // words that mark a posting as a board's trial or QA data, and filler that

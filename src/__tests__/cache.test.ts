@@ -11,7 +11,7 @@ process.env.JOB_SCRAPER_DATA_DIR = tmpDir;
 delete process.env.JOB_SCRAPER_CACHE;
 delete process.env.JOB_SCRAPER_CACHE_TTL;
 
-const { cachedFetch, clearCache, configureCache, getCacheConfig } =
+const { cachedFetch, clearCache, configureCache, CorsError, getCacheConfig } =
   await import('../cache.ts');
 const { time } = await import('../utils/misc.ts');
 
@@ -133,4 +133,15 @@ test('the environment configures the cache too', async () => {
   configureCache({ ttl: undefined });
   assert.equal(getCacheConfig().ttl, time.hour);
   delete process.env.JOB_SCRAPER_CACHE_TTL;
+});
+
+test('Node never reports a network failure as a CorsError', async () => {
+  globalThis.fetch = (async () => {
+    throw new TypeError('fetch failed');
+  }) as typeof fetch;
+
+  await assert.rejects(
+    () => cachedFetch('https://example.com/offline'),
+    (err) => err instanceof TypeError && !(err instanceof CorsError)
+  );
 });

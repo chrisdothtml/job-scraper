@@ -3,7 +3,10 @@
   // them so the editor's language server resolves them like any other file.
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "noEmit": false
+    "noEmit": false,
+    // the published build has to load on every Node the package supports
+    // (22+) and on browsers without newer syntax like `using`
+    "target": "es2022"
   },
   "exclude": ["dist", "node_modules", "src/__tests__", "src/scripts"]
 }

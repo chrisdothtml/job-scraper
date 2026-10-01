@@ -102,8 +102,15 @@ export abstract class Scraper {
 
   constructor(protected companySlug: string) {}
 
-  // allows `using scraper = new Scraper(slug)`
-  [Symbol.dispose]() {}
+  /** Frees whatever the scraper holds in memory (cached postings, say) */
+  dispose(): void {}
+
+  /**
+   * Allows `using scraper = new Scraper(slug)` where the runtime supports it.
+   * Only declared here: it's attached below when `Symbol.dispose` exists,
+   * since a runtime without it (Node 22, Safari) can't define it at all.
+   */
+  declare [Symbol.dispose]: () => void;
 
   /**
    * Gets the full list of jobs. When `testing` is true, scrapers fetch as
@@ -178,6 +185,25 @@ export abstract class Scraper {
       content,
     };
   }
+}
+
+// declares the well-known symbol for consumers whose `lib` predates it, so
+// the `[Symbol.dispose]` member above doesn't force `esnext.disposable` on
+// them. It merges with the lib's own declaration where there is one
+declare global {
+  interface SymbolConstructor {
+    readonly dispose: unique symbol;
+  }
+}
+
+if (typeof Symbol.dispose === 'symbol') {
+  Object.defineProperty(Scraper.prototype, Symbol.dispose, {
+    value(this: Scraper) {
+      this.dispose();
+    },
+    writable: true,
+    configurable: true,
+  });
 }
 
 /**

@@ -153,6 +153,24 @@ test('the registry carries on in memory when localStorage throws', async () => {
   }
 });
 
+test("another tab's registry writes aren't shadowed by this one's", async () => {
+  await registerCompany({ name: 'Ourtab', scraper: 'LeverScraper', slug: 'o' });
+
+  // another tab discovers a company and saves the registry
+  const stored = JSON.parse(storage.getItem(companiesFile)!);
+  stored.companies.push({
+    name: 'Othertab',
+    scraper: 'LeverScraper',
+    slug: 't',
+    source: 'discovered',
+  });
+  storage.setItem(companiesFile, JSON.stringify(stored));
+
+  clearCompaniesCache();
+  assert.equal((await findCompany('Othertab'))?.slug, 't');
+  assert.equal((await findCompany('Ourtab'))?.slug, 'o');
+});
+
 test('responses are cached in the Cache API, with the same TTL rules', async () => {
   const net = stubFetch();
   const url = 'https://example.com/a';

@@ -207,7 +207,7 @@ export default class AshbyScraper extends Scraper {
     return `https://jobs.ashbyhq.com/${this.companySlug}/${id}`;
   }
 
-  [Symbol.dispose]() {
+  dispose() {
     this.jobsCache.clear();
   }
 

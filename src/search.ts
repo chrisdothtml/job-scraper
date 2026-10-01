@@ -1,5 +1,5 @@
 import { platform } from '#platform';
-import { CorsError, corsAwareFetch } from './cache.ts';
+import { corsAwareFetch } from './cache.ts';
 import { normalizeCompanyName, slugMatchesCompany } from './companies.ts';
 import { scraperNames, scrapers, type ScraperName } from './scrapers/index.ts';
 import { type ParsedUrl } from './scrapers/Scraper.ts';
@@ -211,10 +211,7 @@ function runSearch(
       links = (data.organic_results ?? [])
         .map(({ link }) => link)
         .filter((link): link is string => Boolean(link));
-    } catch (err) {
-      // a request the browser blocked never reached SerpApi, so it spent
-      // nothing; without this, every lookup in a browser would eat quota
-      if (err instanceof CorsError) await writeUsage(usage);
+    } catch {
       return null;
     }
 

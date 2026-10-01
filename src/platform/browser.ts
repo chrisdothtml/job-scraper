@@ -27,9 +27,11 @@ const scope = globalThis as {
 // cache dir names the Cache API cache, and files are `localStorage` keys
 const dataDir = 'job-scraper';
 
-// what's been written this session. Reads prefer it, so state survives a
-// `localStorage` that's missing, blocked, or full, just not a reload
-const memory = new Map<string, string>();
+// writes `localStorage` couldn't take (missing, blocked, or full), so state
+// still carries this session, just not a reload. Only those keys are read
+// from here: everything else comes from `localStorage`, so another tab's
+// writes are never shadowed by a stale copy of our own
+const unpersisted = new Map<string, string>();
 
 // stamped on every stored response, since the Cache API keeps no write time
 const CACHED_AT = 'x-job-scraper-cached-at';
@@ -105,7 +107,7 @@ export const platform: Platform = {
   dataFile: (name) => `${dataDir}/${name}`,
 
   async readText(file) {
-    if (memory.has(file)) return memory.get(file)!;
+    if (unpersisted.has(file)) return unpersisted.get(file)!;
 
     try {
       return scope.localStorage?.getItem(file) ?? null;
@@ -115,12 +117,12 @@ export const platform: Platform = {
   },
 
   async writeText(file, contents) {
-    memory.set(file, contents);
-
     try {
-      scope.localStorage?.setItem(file, contents);
+      if (!scope.localStorage) throw new Error('No localStorage');
+      scope.localStorage.setItem(file, contents);
+      unpersisted.delete(file);
     } catch {
-      // blocked or over quota; the in-memory copy carries this session
+      unpersisted.set(file, contents);
     }
   },
 

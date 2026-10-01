@@ -19,7 +19,11 @@ import {
   scrapers,
   type ScraperName,
 } from './scrapers/index.ts';
-import { BoardShapeError, type Scraper } from './scrapers/Scraper.ts';
+import {
+  BoardShapeError,
+  type Scraper,
+  type ScraperSubclass,
+} from './scrapers/Scraper.ts';
 import { searchForBoards } from './search.ts';
 import { sniffPage } from './sniff.ts';
 
@@ -255,9 +259,11 @@ export async function resolveJob(
       // the slug has to look like the company before we'll believe it
       if (!slugMatchesCompany(board.slug, name)) continue;
 
-      using instance = new scrapers[board.scraper](board.slug);
       // the search told us where to look; the board still has to confirm it
-      if (!(await hasCompanyBoard(instance, minJobs, misses))) continue;
+      const ScraperClass = scrapers[board.scraper];
+      if (!(await hasCompanyBoard(ScraperClass, board.slug, minJobs, misses))) {
+        continue;
+      }
 
       const company = { name, scraper: board.scraper, slug: board.slug };
       await registerCompany(company);
@@ -284,16 +290,18 @@ interface ProbeLog {
 }
 
 /**
- * Runs `hasCompanyBoard`, recording a `BoardShapeError` or `CorsError` in
+ * Runs `hasCompanyBoard` on a throwaway instance, recording a `BoardShapeError` or `CorsError` in
  * `misses` instead of letting it abort the candidate loop it's called from.
  * A board the browser won't let us reach is no match, not a failure: the
  * company may well be on one of the boards it can reach.
  */
 async function hasCompanyBoard(
-  instance: Scraper,
+  ScraperClass: ScraperSubclass,
+  slug: string,
   minJobs: number,
   misses: ProbeLog
 ): Promise<boolean> {
+  const instance = new ScraperClass(slug);
   try {
     return await instance.hasCompanyBoard(minJobs);
   } catch (err) {
@@ -301,6 +309,8 @@ async function hasCompanyBoard(
     else if (err instanceof CorsError) misses.blocked = true;
     else throw err;
     return false;
+  } finally {
+    instance.dispose();
   }
 }
 
@@ -494,8 +504,12 @@ async function discoverBoard(
       const slugs = slug ? [slug] : ScraperClass.slugCandidates(companyName);
 
       return slugs.map(async (slug) => {
-        using instance = new ScraperClass(slug);
-        const exists = await hasCompanyBoard(instance, minJobs, misses);
+        const exists = await hasCompanyBoard(
+          ScraperClass,
+          slug,
+          minJobs,
+          misses
+        );
         return exists ? { name: companyName, scraper, slug } : null;
       });
     });

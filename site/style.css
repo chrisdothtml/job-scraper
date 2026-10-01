@@ -10,6 +10,11 @@
   --error: #b42318;
   --notice-bg: #fff7e0;
   --notice-border: #e8c766;
+  --tok-keyword: #a626a4;
+  --tok-string: #2f7d32;
+  --tok-number: #b35900;
+  --tok-comment: #6e6e78;
+  --tok-fn: #2456d6;
   --radius: 8px;
   --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
@@ -26,6 +31,11 @@
     --error: #ff8a80;
     --notice-bg: #2c2512;
     --notice-border: #6b5a22;
+    --tok-keyword: #d49cf0;
+    --tok-string: #9fd68f;
+    --tok-number: #f0b27a;
+    --tok-comment: #8c8c98;
+    --tok-fn: #8fb4ff;
   }
 }
 
@@ -343,6 +353,167 @@ pre {
 
 .docs {
   margin-top: 3rem;
-  padding-block: 1.5rem 3rem;
+  padding-block: 0.5rem 3rem;
   border-top: 1px solid var(--border);
+}
+
+.docs h2 {
+  font-size: 1.35rem;
+  margin: 2rem 0 0.75rem;
+}
+
+.docs code {
+  font-family: var(--mono);
+  font-size: 0.875em;
+}
+
+.docs pre code {
+  font-size: inherit;
+}
+
+.code-block {
+  position: relative;
+}
+
+.code-block pre {
+  margin: 0.75rem 0;
+}
+
+.copy {
+  position: absolute;
+  top: 0.4rem;
+  right: 0.4rem;
+  padding: 0.1rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.copy:hover {
+  color: var(--fg);
+  border-color: var(--accent);
+}
+
+/* the button would cover the end of the first line, so it only shows when
+   wanted where there's hover, and gets a row of its own where there isn't */
+@media (hover: hover) {
+  .copy {
+    opacity: 0;
+  }
+
+  .code-block:is(:hover, :focus-within) .copy {
+    opacity: 1;
+  }
+}
+
+@media (hover: none) {
+  .code-block:has(.copy) pre {
+    padding-top: 2.25rem;
+  }
+}
+
+.tok-keyword {
+  color: var(--tok-keyword);
+}
+
+.tok-string {
+  color: var(--tok-string);
+}
+
+.tok-number {
+  color: var(--tok-number);
+}
+
+.tok-comment {
+  color: var(--tok-comment);
+  font-style: italic;
+}
+
+.tok-fn {
+  color: var(--tok-fn);
+}
+
+details {
+  border-bottom: 1px solid var(--border);
+}
+
+details:first-of-type {
+  border-top: 1px solid var(--border);
+}
+
+summary {
+  padding-block: 0.6rem;
+  cursor: pointer;
+}
+
+summary h3 {
+  display: inline;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+details[open] {
+  padding-bottom: 0.75rem;
+}
+
+/* without JS, every panel shows under its own label */
+.tab-label {
+  margin: 1rem 0 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+[role='tablist'] {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-top: 0.75rem;
+}
+
+[role='tab'] {
+  padding: 0.3rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+[role='tab'][aria-selected='true'] {
+  border-color: var(--accent);
+  color: var(--fg);
+  font-weight: 600;
+}
+
+[role='tabpanel']:focus-visible {
+  outline-offset: 4px;
+}
+
+.table-wrap {
+  overflow-x: auto;
+  margin: 0.75rem 0;
+}
+
+table {
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+th,
+td {
+  padding: 0.4rem 0.75rem 0.4rem 0;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: top;
+}
+
+dt {
+  margin-top: 0.75rem;
+}
+
+dd {
+  margin-left: 1rem;
 }

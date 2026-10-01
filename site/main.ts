@@ -12,6 +12,7 @@ import {
   type ListedJob,
 } from '../src/index.ts';
 import { descriptionHtml } from './description.ts';
+import { enhanceDocs } from './docs.ts';
 import { sanitizeHtml } from './sanitize.ts';
 
 type Mode = 'company' | 'job';
@@ -326,3 +327,4 @@ function renderError(error: unknown, call: NodeCall): Node {
 
 showPlaceholder();
 renderExamples();
+enhanceDocs();

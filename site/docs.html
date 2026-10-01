@@ -1,0 +1,651 @@
+<section id="install" aria-labelledby="install-title">
+  <h2 id="install-title">Install</h2>
+  <div class="code-block">
+    <pre><code>yarn add @chrisdothtml/job-scraper</code></pre>
+  </div>
+  <p>
+    No runtime dependencies. Requires Node 22+, or a bundler for browsers, where
+    only some boards are reachable (see
+    <a href="#browsers">Running in browsers</a>).
+  </p>
+</section>
+
+<section id="recipes" aria-labelledby="recipes-title">
+  <h2 id="recipes-title">Recipes</h2>
+  <div class="tabs" data-label="Recipes">
+    <div class="tab-panel">
+      <h3 class="tab-label">New-posting alerts</h3>
+      <pre data-snippet="watchlist"></pre>
+    </div>
+    <div class="tab-panel">
+      <h3 class="tab-label">Job URL to LLM input</h3>
+      <pre data-snippet="llm"></pre>
+    </div>
+    <div class="tab-panel">
+      <h3 class="tab-label">In a frontend app</h3>
+      <pre data-snippet="browser"></pre>
+    </div>
+    <div class="tab-panel">
+      <h3 class="tab-label">Is it still posted?</h3>
+      <pre data-snippet="still-open"></pre>
+    </div>
+  </div>
+</section>
+
+<section id="api" aria-labelledby="api-title">
+  <h2 id="api-title">API</h2>
+
+  <details id="list-company-jobs">
+    <summary>
+      <h3><code>listCompanyJobs(input)</code></h3>
+    </summary>
+    <p>Every job a company currently has posted.</p>
+    <div class="tabs" data-label="listCompanyJobs input">
+      <div class="tab-panel">
+        <h4 class="tab-label">By name</h4>
+        <pre data-snippet="api#list-name"></pre>
+      </div>
+      <div class="tab-panel">
+        <h4 class="tab-label">By URL</h4>
+        <pre data-snippet="api#list-url"></pre>
+      </div>
+      <div class="tab-panel">
+        <h4 class="tab-label">By board</h4>
+        <pre data-snippet="api#list-board"></pre>
+      </div>
+    </div>
+    <p>
+      Returns <code>ListedJob[]</code>, shaped
+      <code>{ id, title, location, url }</code>. Throws
+      <code>UnresolvedCompanyError</code> when no scraper can be resolved for
+      the company. Object input also takes <code>search</code> and
+      <code>minJobs</code> (see <a href="#resolution">resolution</a>).
+    </p>
+  </details>
+
+  <details id="fetch-job">
+    <summary>
+      <h3><code>fetchJob(input)</code></h3>
+    </summary>
+    <p>A single posting, with its full content.</p>
+    <div class="tabs" data-label="fetchJob input">
+      <div class="tab-panel">
+        <h4 class="tab-label">By posting URL</h4>
+        <pre data-snippet="api#job-url"></pre>
+      </div>
+      <div class="tab-panel">
+        <h4 class="tab-label">Embedded board</h4>
+        <pre data-snippet="api#job-embedded"></pre>
+      </div>
+      <div class="tab-panel">
+        <h4 class="tab-label">By company + id</h4>
+        <pre data-snippet="api#job-id"></pre>
+      </div>
+    </div>
+    <p>
+      Returns a <code>Job</code>: a <code>ListedJob</code> plus
+      <code>content</code>, the full posting. <code>content</code> is whatever
+      the board gives up: usually stringified JSON, sometimes markdown or plain
+      text.
+    </p>
+    <p>
+      A URL is only trusted for the job id it carries itself. Sniffing a careers
+      page turns up plenty of job links, and the first one isn't the one you
+      asked for, so <code>fetchJob</code> on a board's landing page raises
+      rather than fetching an arbitrary posting.
+    </p>
+  </details>
+
+  <details id="resolve">
+    <summary><h3>Resolution, without fetching</h3></summary>
+    <pre data-snippet="reference#resolve"></pre>
+    <p>
+      <code>resolveCompany</code> takes the same input as
+      <code>listCompanyJobs</code>.
+    </p>
+  </details>
+
+  <details id="scrapers">
+    <summary><h3>Scrapers directly</h3></summary>
+    <p>
+      Every board's scraper is exported under <code>scrapers</code>, and takes
+      the board slug.
+    </p>
+    <pre data-snippet="reference#direct"></pre>
+    <p>
+      Some boards (Ashby, Lever, Shopify) only hand over full postings through
+      their list endpoint. You don't need to know which:
+      <code>getJobContent</code> fetches the list itself when its cache is cold,
+      so a job is always fetchable at will.
+    </p>
+    <p>
+      This is also the better tool for bulk work.
+      <code>listCompanyJobs</code> and <code>fetchJob</code> each build a
+      scraper and dispose of it before returning, which drops whatever it cached
+      (notably the job list some boards need to answer
+      <code>getJobContent</code> from). Fine for one lookup; wasteful for many
+      jobs from the same company, since each call re-fetches that list. Hold
+      onto a scraper yourself instead:
+    </p>
+    <pre data-snippet="reference#bulk"></pre>
+  </details>
+
+  <details id="errors">
+    <summary><h3>Errors</h3></summary>
+    <dl>
+      <dt><code>UnresolvedCompanyError</code></dt>
+      <dd>
+        No scraper serves the company. Carries the <code>input</code> that
+        failed, and <code>blocked</code>: whether the browser's CORS policy
+        blocked any board along the way (so it may resolve from Node).
+      </dd>
+      <dt><code>CorsError</code></dt>
+      <dd>
+        Browser only. A request was blocked (most likely by CORS) before any
+        response arrived. Carries <code>url</code>.
+      </dd>
+      <dt><code>HttpError</code></dt>
+      <dd>
+        A board answered non-2xx. Carries <code>status</code>,
+        <code>statusText</code> and <code>url</code>. A stale job id surfaces as
+        a 404 here rather than as job content.
+      </dd>
+      <dt><code>JobNotFoundError</code></dt>
+      <dd>
+        The board served its list, but nothing in it has that id. Carries
+        <code>jobId</code> and <code>companySlug</code>.
+      </dd>
+    </dl>
+  </details>
+</section>
+
+<section id="guides" aria-labelledby="guides-title">
+  <h2 id="guides-title">Guides</h2>
+
+  <details id="resolution">
+    <summary><h3>How a company gets resolved</h3></summary>
+    <p>Given a name or URL, in order:</p>
+    <ol>
+      <li>
+        <strong>URL match</strong>: every scraper gets asked whether it
+        recognizes the host. A match yields the board slug and, on a posting
+        URL, the job id.
+      </li>
+      <li>
+        <strong>Domain lookup</strong>: the hostname is checked against the
+        domains companies are known to post on. A company that's been seen on
+        <code>pinterestcareers.com</code> once is found there forever after,
+        without a single request.
+      </li>
+      <li>
+        <strong>Registry lookup</strong>: the name is normalized (<code
+          >"Apollo.io, Inc."</code
+        >
+        → <code>apolloio</code>) and checked against the known companies. A
+        careers site names itself rather than the company, so
+        <code>pinterestcareers</code> is also tried as <code>pinterest</code>.
+      </li>
+      <li>
+        <strong>Page sniffing</strong>: if none of that lands, the page is
+        fetched. Every link in its markup is run back through step 1, since a
+        company's own careers page is bespoke but the board it embeds leaves its
+        slug there
+        (<code>boards.greenhouse.io/embed/job_board/js?for=airbnb</code>).
+        Failing that, the page usually names its own company in
+        <code>og:site_name</code> or JSON-LD, which goes back through step 3.
+      </li>
+      <li>
+        <strong>Slug guessing</strong>: the multi-tenant boards are probed in
+        parallel with slugs derived from the name (<code>acmecorp</code>,
+        <code>acme-corp</code>, and per-board variants). A board's own tracking
+        params (<code>?gh_jid=</code>) hint at which to try first. The first
+        board with at least <code>minJobs</code> real postings (3 by default)
+        wins, since a slug answering only proves the board exists, not that the
+        company uses it, and plenty keep a forgotten trial account holding one
+        "Test UAT" posting. Placeholders like that, and talent-community
+        catch-alls, don't count.
+      </li>
+      <li>
+        <strong>Web search</strong>: if a SerpApi key is configured, a
+        <code>site:</code>-scoped search over the board domains. See
+        <a href="#search">Web search</a>.
+      </li>
+      <li>Otherwise, <code>UnresolvedCompanyError</code>.</li>
+    </ol>
+    <p>
+      Anything found in steps 5 and 6 is written to the registry, so the next
+      lookup is a plain hit. So is the careers domain a company was found on,
+      whichever step found it. That's what collapses the whole pipeline to step
+      2 the second time around.
+    </p>
+  </details>
+
+  <details id="search">
+    <summary><h3>Web search (optional)</h3></summary>
+    <p>
+      Slug guessing only works when the slug looks like the company name. It
+      doesn't for Workday, whose slugs are <code>tenant.pod.site</code> triples
+      (<code>autodesk.wd1.Ext</code>) that can't be derived from anything. A
+      <a href="https://serpapi.com/">SerpApi</a> search finds those.
+    </p>
+    <div class="tabs" data-label="Search configuration">
+      <div class="tab-panel">
+        <h4 class="tab-label">In code</h4>
+        <pre data-snippet="search#config"></pre>
+      </div>
+      <div class="tab-panel">
+        <h4 class="tab-label">Environment (Node only)</h4>
+        <div class="code-block">
+          <pre><code>SERP_API_TOKEN=...  # or SERPAPI_KEY, or SERPAPI_API_KEY
+SERPAPI_SEARCH_LIMIT=100
+SERPAPI_SEARCH_PERIOD=month</code></pre>
+        </div>
+        <p>Browsers have no environment, so they use the code form.</p>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Option</th>
+            <th>Default</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>apiKey</code></td>
+            <td>env in Node, else <code>null</code></td>
+            <td>Search is skipped entirely when unset</td>
+          </tr>
+          <tr>
+            <td><code>limit</code></td>
+            <td><code>250</code></td>
+            <td>Max searches per <code>period</code></td>
+          </tr>
+          <tr>
+            <td><code>period</code></td>
+            <td><code>'month'</code></td>
+            <td><code>'day'</code> or <code>'month'</code></td>
+          </tr>
+          <tr>
+            <td><code>resultCount</code></td>
+            <td><code>10</code></td>
+            <td>Results requested per search</td>
+          </tr>
+          <tr>
+            <td><code>resultTtl</code></td>
+            <td>30 days</td>
+            <td>How long a search's results are reused</td>
+          </tr>
+          <tr>
+            <td><code>batchSize</code></td>
+            <td><code>5</code></td>
+            <td>Companies per query in a batched search</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p>
+      The defaults match SerpApi's free tier: 250 searches a month. Check your
+      own dashboard, since the allowance changes. Usage is counted in
+      <code>search-usage.json</code> (see <a href="#state">state</a>) and resets
+      when the period rolls over; a search is counted before its response lands,
+      since a request that errors mid-flight still spends quota. Once the limit
+      is hit, search silently stops being attempted and resolution falls back to
+      the earlier steps.
+    </p>
+    <h4>Keeping search cheap</h4>
+    <ul>
+      <li>
+        <strong>Results are remembered</strong>, in
+        <code>search-results.json</code>, including fruitless ones: not finding
+        a company is exactly the case that would otherwise re-search on every
+        lookup. Reused for <code>resultTtl</code>, since companies change job
+        boards rarely.
+      </li>
+      <li>
+        <strong>Concurrent lookups of the same company share one search</strong
+        >, so resolving a list in parallel can't double-spend.
+      </li>
+      <li>
+        <strong>Bulk lookups are batched.</strong>
+        <code>searchForBoardsBatch(names)</code> ORs
+        <code>batchSize</code> companies into one query at
+        <code>num=100</code> and attributes results back by slug: a 5×
+        reduction. Anything already remembered is skipped, so re-running a large
+        list is nearly free.
+      </li>
+      <li>Search is only reached when slug guessing has already failed.</li>
+    </ul>
+    <pre data-snippet="search#batch"></pre>
+    <p>
+      A search result is never trusted on its own. Searching for a company that
+      other companies' job posts name-drop (an HR platform, say) returns boards
+      belonging to entirely different companies, so a result is only accepted
+      when the slug resembles the company name <strong>and</strong> the board
+      clears the same <code>minJobs</code> bar as slug guessing. A board that a
+      search finds but whose API won't serve it is treated as unresolvable,
+      rather than registered as an entry that would always fail.
+    </p>
+    <p>
+      Search is on whenever a key is configured. Turn it off for a single call
+      with <code>search: false</code>:
+    </p>
+    <pre data-snippet="search-off"></pre>
+  </details>
+
+  <details id="registry">
+    <summary><h3>The companies registry</h3></summary>
+    <p>
+      <code>src/companies.seed.ts</code> is the list the package ships with
+      (exported as <code>seedCompanies</code>). Entries carry the board (<code
+        >scraper</code
+      >
+      + <code>slug</code>) and, where known, the <code>domains</code> the
+      company posts on: never a shared board host, which would point every
+      company on that board at one entry. On first run it's copied into the data
+      dir, which then becomes the live registry. Companies discovered at runtime
+      are appended there, not to the seed.
+    </p>
+    <p>
+      Each entry records where it came from (<code>seed</code> or
+      <code>discovered</code>), and the file records the package version it was
+      last reconciled against. On the common path that version matches and
+      loading is just a parse. When it doesn't, because you upgraded, the two
+      lists are merged (<code>mergeRegistry(stored)</code>):
+    </p>
+    <ul>
+      <li>
+        the shipped list wins for anything it covers, since a release may have
+        corrected a slug
+      </li>
+      <li>everything you discovered yourself is carried over untouched</li>
+      <li>
+        <code>seed</code> entries a release has dropped go away, since their
+        removal was deliberate
+      </li>
+    </ul>
+    <p>
+      So upgrading never discards your discoveries, and never leaves you stuck
+      on a stale shipped list. Read it with <code>listCompanies()</code>; add to
+      it with <code>registerCompany()</code>.
+    </p>
+  </details>
+
+  <details id="state">
+    <summary><h3>Where state lives</h3></summary>
+    <div class="tabs" data-label="Where state lives">
+      <div class="tab-panel">
+        <h4 class="tab-label">Node</h4>
+        <p>Everything mutable lives in <code>~/.job-scraper</code>:</p>
+        <div class="table-wrap">
+          <table>
+            <tbody>
+              <tr>
+                <td><code>companies.json</code></td>
+                <td>the <a href="#registry">registry</a></td>
+              </tr>
+              <tr>
+                <td><code>cache/</code></td>
+                <td>cached board responses</td>
+              </tr>
+              <tr>
+                <td><code>search-results.json</code></td>
+                <td>what web search turned up per company</td>
+              </tr>
+              <tr>
+                <td><code>search-usage.json</code></td>
+                <td>search quota accounting</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          It's in your home directory rather than the working directory so every
+          project on the machine shares it: a company should only need
+          discovering once, and a board one project fetched shouldn't be
+          re-fetched by the next. Writes are atomic (temp file then rename), so
+          concurrent processes can't read a half-written registry. The paths are
+          exported as <code>dataDir</code>, <code>cacheDir</code> and
+          <code>companiesFile</code>.
+        </p>
+        <ul>
+          <li>Move it with <code>JOB_SCRAPER_DATA_DIR</code>.</li>
+          <li>Delete <code>companies.json</code> to reset back to the seed.</li>
+          <li>
+            Set <code>DISABLE_COMPANY_REGISTRY</code> to skip the stored file
+            entirely (reads and writes) for the process, so the registry is
+            always the seed, in memory only. Handy while changing its shape.
+          </li>
+        </ul>
+      </div>
+      <div class="tab-panel">
+        <h4 class="tab-label">Browsers</h4>
+        <p>
+          There's no filesystem: the registry and search state go to
+          <code>localStorage</code> (falling back to memory), and board
+          responses to the Cache API. <code>dataDir</code>,
+          <code>cacheDir</code> and <code>companiesFile</code> are only Node
+          paths; in browsers they're just the names the same state goes by. None
+          of the environment variables apply.
+        </p>
+      </div>
+    </div>
+  </details>
+
+  <details id="caching">
+    <summary><h3>Caching</h3></summary>
+    <p>
+      Every board request is cached, keyed by URL and request body. It's on by
+      default, since scraping the same board twice in a session shouldn't cost
+      two round trips, but the TTLs are the package's opinion, not yours:
+    </p>
+    <div class="tabs" data-label="Cache configuration">
+      <div class="tab-panel">
+        <h4 class="tab-label">In code</h4>
+        <pre data-snippet="reference#cache-config"></pre>
+      </div>
+      <div class="tab-panel">
+        <h4 class="tab-label">Environment (Node only)</h4>
+        <div class="code-block">
+          <pre><code>JOB_SCRAPER_CACHE=off
+JOB_SCRAPER_CACHE_TTL=3600000</code></pre>
+        </div>
+        <p>Browsers have no environment, so they use the code form.</p>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Option</th>
+            <th>Default</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>enabled</code></td>
+            <td><code>true</code></td>
+            <td></td>
+          </tr>
+          <tr>
+            <td><code>ttl</code></td>
+            <td><code>null</code></td>
+            <td>
+              Milliseconds. <code>null</code> keeps each scraper's own choice (a
+              day, mostly)
+            </td>
+          </tr>
+          <tr>
+            <td><code>dir</code></td>
+            <td><code>~/.job-scraper/cache</code></td>
+            <td>In browsers, the name of the Cache API cache</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p>
+      Precedence is explicit override → environment → default.
+      <code>enabled</code> can only turn caching <strong>off</strong>: scrapers
+      opt out per call in some places (a discovery probe shouldn't be answered
+      from cache), and config can't force those back on.
+    </p>
+    <p>
+      In browsers, responses go to the Cache API with the same TTLs, and aren't
+      cached at all where it's unavailable. Failed responses are never cached: a
+      404 body must not become an entry a later call would trust as job content.
+    </p>
+  </details>
+
+  <details id="boards">
+    <summary><h3>Supported boards</h3></summary>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Scraper</th>
+            <th>Discoverable</th>
+            <th>Browsers</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>GreenhouseScraper</code></td>
+            <td>Yes</td>
+            <td>Yes</td>
+            <td>Also handles boards embedded via <code>?gh_jid=</code></td>
+          </tr>
+          <tr>
+            <td><code>AshbyScraper</code></td>
+            <td>Yes</td>
+            <td>Yes</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td><code>LeverScraper</code></td>
+            <td>Yes</td>
+            <td>Yes</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td><code>WorkableScraper</code></td>
+            <td>Yes</td>
+            <td>No</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td><code>SmartRecruitersScraper</code></td>
+            <td>Yes</td>
+            <td>Yes</td>
+            <td>PascalCase slugs</td>
+          </tr>
+          <tr>
+            <td><code>RipplingScraper</code></td>
+            <td>Yes</td>
+            <td>Yes</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td><code>WorkdayScraper</code></td>
+            <td>No</td>
+            <td>No</td>
+            <td>
+              Slug is <code>tenant.pod.site</code>, e.g.
+              <code>autodesk.wd1.Ext</code>
+            </td>
+          </tr>
+          <tr>
+            <td><code>GitHubScraper</code></td>
+            <td>No</td>
+            <td>No</td>
+            <td>iCIMS-backed</td>
+          </tr>
+          <tr>
+            <td><code>GoogleScraper</code></td>
+            <td>No</td>
+            <td>No</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td><code>NetflixScraper</code></td>
+            <td>No</td>
+            <td>No</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td><code>NvidiaScraper</code></td>
+            <td>No</td>
+            <td>No</td>
+            <td>Eightfold-backed</td>
+          </tr>
+          <tr>
+            <td><code>ShopifyScraper</code></td>
+            <td>No</td>
+            <td>No</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td><code>UberScraper</code></td>
+            <td>No</td>
+            <td>No</td>
+            <td>Oracle Fusion Recruiting Cloud-backed</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p>
+      "Discoverable" means the board can be found by guessing slugs from a
+      company name. The rest still resolve by URL, by web search, or by an
+      explicit <code>{ scraper, slug }</code>. "Browsers" means the board allows
+      cross-origin requests; the rest only work from Node.
+    </p>
+  </details>
+
+  <details id="browsers">
+    <summary><h3>Running in browsers</h3></summary>
+    <p>
+      The same API runs in browsers through any bundler (the
+      <a href="#hero-title">live demo</a> above is the package itself), with a
+      few differences:
+    </p>
+    <ul>
+      <li>
+        Only Ashby, Greenhouse, Lever, SmartRecruiters and Rippling allow
+        cross-origin requests. A board that doesn't throws
+        <code>CorsError</code>; when it was hit during resolution instead, the
+        <code>UnresolvedCompanyError</code> has <code>blocked</code> set. Either
+        way it works from Node, which doesn't enforce CORS.
+      </li>
+      <li>
+        Configuration is <code>configureCache</code> and
+        <code>configureSearch</code> only; environment variables are Node only.
+      </li>
+      <li>
+        State goes to <code>localStorage</code> and the Cache API (see
+        <a href="#state">Where state lives</a>), and the <code>dataDir</code>,
+        <code>cacheDir</code> and <code>companiesFile</code> paths are Node
+        only.
+      </li>
+    </ul>
+  </details>
+
+  <details id="contributing">
+    <summary><h3>Adding a scraper</h3></summary>
+    <p>
+      Use the
+      <a
+        href="https://github.com/chrisdothtml/job-scraper/blob/main/.claude/skills/create-scraper/SKILL.md"
+        ><code>/create-scraper</code></a
+      >
+      skill, which drives a browser to find a board's underlying JSON API and
+      writes the subclass. See
+      <a
+        href="https://github.com/chrisdothtml/job-scraper/blob/main/CONTRIBUTING.md"
+        >CONTRIBUTING.md</a
+      >.
+    </p>
+  </details>
+</section>

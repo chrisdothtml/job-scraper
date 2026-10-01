@@ -72,6 +72,10 @@ The scraper tests hit live APIs, so they're slow and can fail for reasons that a
 TEST_COMPANIES="Airbnb, Canva" yarn test
 ```
 
+## Docs
+
+The docs are the [site](https://chrisdothtml.github.io/job-scraper/): `site/docs.html`, rendered into `site/index.html` at build time. Its code blocks are pulled from `site/snippets/` (by `// #region`), which are real modules, so `yarn typecheck` catches a doc example that's drifted from the API. Preview with `yarn site:dev`.
+
 ## Before opening a PR
 
 ```sh

@@ -4,7 +4,9 @@
   "extends": "../tsconfig.json",
   "compilerOptions": {
     "rootDir": "..",
-    "lib": ["esnext", "dom", "dom.iterable"]
+    "lib": ["esnext", "dom", "dom.iterable"],
+    // the docs' snippets import the package by name, as readers would
+    "paths": { "@chrisdothtml/job-scraper": ["../src/index.ts"] }
   },
   "include": ["./**/*"],
   "exclude": []

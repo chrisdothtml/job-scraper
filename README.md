@@ -34,7 +34,7 @@ These are its current counts for the job boards this package supports:
 yarn add @chrisdothtml/job-scraper
 ```
 
-No runtime dependencies. Requires Node 22+, or a bundler for browsers (where only some boards are reachable; see `CorsError` in [DOCS.md](./DOCS.md)).
+No runtime dependencies. Requires Node 22+, or a bundler for browsers (where only some boards are reachable).
 
 ## Usage
 
@@ -57,7 +57,7 @@ await listCompanyJobs(
 await fetchJob('https://job-boards.greenhouse.io/airbnb/jobs/7712345');
 ```
 
-See [DOCS.md](./DOCS.md) for the full API, how resolution works, the companies registry, caching, and configuration.
+See the [docs](https://chrisdothtml.github.io/job-scraper/#docs) for the full API, recipes, how resolution works, caching, and configuration.
 
 ## License
 

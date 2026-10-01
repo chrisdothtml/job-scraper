@@ -1,0 +1,56 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+  id-token: write # npm trusted publishing + provenance
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          # setup-node reads `volta.node` from package.json
+          node-version-file: package.json
+          registry-url: https://registry.npmjs.org
+
+      # trusted publishing requires npm >= 11.5.1, and Node 25+ no longer
+      # bundles corepack, so install both explicitly
+      - name: Install npm + corepack
+        run: |
+          npm install -g npm@latest corepack@latest
+          corepack enable
+          npm --version
+          yarn --version
+
+      - run: yarn install --immutable
+      - run: yarn typecheck
+      - run: yarn lint
+
+      - name: Set version from release tag
+        id: version
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          VERSION="${TAG#v}"
+          if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?$ ]]; then
+            echo "::error::Release tag '$TAG' is not a semver version (expected vX.Y.Z)"
+            exit 1
+          fi
+          npm version --no-git-tag-version --allow-same-version "$VERSION"
+          # npm requires an explicit dist-tag for prerelease versions
+          # ignore build metadata (`+...`), which may itself contain `-`
+          if [[ "${VERSION%%+*}" == *-* ]]; then
+            echo "dist_tag=next" >> "$GITHUB_OUTPUT"
+          else
+            echo "dist_tag=latest" >> "$GITHUB_OUTPUT"
+          fi
+
+      # `prepack` runs `yarn build`, which bakes the version set above into dist
+      - run: npm publish --provenance --access public --tag "${{ steps.version.outputs.dist_tag }}"

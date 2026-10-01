@@ -9,6 +9,7 @@ import { type Job, type ListedJob } from './scrapers/Scraper.ts';
 export {
   clearCache,
   configureCache,
+  CorsError,
   getCacheConfig,
   HttpError,
   type CacheConfig,
@@ -98,8 +99,12 @@ export async function listCompanyJobs(
   input: CompanyInput | string
 ): Promise<ListedJob[]> {
   const company = await resolveCompany(input);
-  using scraper = createScraper(company);
-  return scraper.getJobsList();
+  const scraper = createScraper(company);
+  try {
+    return await scraper.getJobsList();
+  } finally {
+    scraper.dispose();
+  }
 }
 
 export interface FetchJobInput extends CompanyInput {
@@ -135,6 +140,10 @@ export async function fetchJob(input: FetchJobInput | string): Promise<Job> {
     );
   }
 
-  using scraper = createScraper(resolved);
-  return scraper.getJob(id);
+  const scraper = createScraper(resolved);
+  try {
+    return await scraper.getJob(id);
+  } finally {
+    scraper.dispose();
+  }
 }

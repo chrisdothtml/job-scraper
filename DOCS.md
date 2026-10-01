@@ -102,7 +102,7 @@ await resolveCompany('Whatnot');
 // { name: 'Whatnot', scraper: 'WorkdayScraper', slug: 'whatnot.wd1.Whatnot', discovered: true }
 ```
 
-Or by environment: `SERP_API_TOKEN` (also `SERPAPI_KEY` / `SERPAPI_API_KEY`), `SERPAPI_SEARCH_LIMIT`, `SERPAPI_SEARCH_PERIOD`.
+Or by environment (Node only; browsers must use `configureSearch`): `SERP_API_TOKEN` (also `SERPAPI_KEY` / `SERPAPI_API_KEY`), `SERPAPI_SEARCH_LIMIT`, `SERPAPI_SEARCH_PERIOD`.
 
 | Option        | Default                        |                                       |
 | ------------- | ------------------------------ | ------------------------------------- |
@@ -169,7 +169,7 @@ Everything mutable lives in `~/.job-scraper`:
 
 It's in your home directory rather than the working directory so every project on the machine shares it: a company should only need discovering once, and a board one project fetched shouldn't be re-fetched by the next. Writes are atomic (temp file then rename), so concurrent processes can't read a half-written registry.
 
-Override the location with `JOB_SCRAPER_DATA_DIR`. Delete `companies.json` to reset back to the seed, or set `DISABLE_COMPANY_REGISTRY` to skip the stored file entirely (reads and writes) for the process, so the registry is always the seed, in-memory only. That's handy while changing its shape.
+In browsers there's no filesystem: the registry and search state go to `localStorage` (falling back to memory), and `dataDir`/`cacheDir`/`companiesFile` are only Node paths. Override the location with `JOB_SCRAPER_DATA_DIR` (Node only). Delete `companies.json` to reset back to the seed, or set `DISABLE_COMPANY_REGISTRY` to skip the stored file entirely (reads and writes) for the process, so the registry is always the seed, in-memory only. That's handy while changing its shape.
 
 ## Supported boards
 
@@ -206,7 +206,7 @@ configureCache({ ttl: undefined }); // drop the override again
 await clearCache(); // returns how many entries went
 ```
 
-Or by environment: `JOB_SCRAPER_CACHE=off`, `JOB_SCRAPER_CACHE_TTL=3600000`.
+Or by environment (Node only): `JOB_SCRAPER_CACHE=off`, `JOB_SCRAPER_CACHE_TTL=3600000`. In browsers responses go to the Cache API instead (named by `dir`), with the same TTLs, and aren't cached at all where it's unavailable.
 
 | Option    | Default                |                                                                      |
 | --------- | ---------------------- | -------------------------------------------------------------------- |
@@ -220,7 +220,8 @@ Failed responses are never cached: a 404 body must not become an entry a later c
 
 ## Errors
 
-- `UnresolvedCompanyError`: no scraper serves the company. Carries the `input` that failed.
+- `UnresolvedCompanyError`: no scraper serves the company. Carries the `input` that failed, and `blocked`: whether the browser's CORS policy blocked any board along the way (so it may resolve from Node).
+- `CorsError`: browser only. A request was blocked (most likely by CORS) before any response arrived. Carries `url`. Ashby, Greenhouse, Lever, SmartRecruiters and Rippling allow cross-origin requests; the rest of the boards don't.
 - `HttpError`: a board answered non-2xx. Carries `status`, `statusText` and `url`. A stale job id surfaces as a 404 here rather than as job content.
 - `JobNotFoundError`: the board served its list, but nothing in it has that id. Carries `jobId` and `companySlug`.
 

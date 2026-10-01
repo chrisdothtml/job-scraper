@@ -1,8 +1,6 @@
-import fs from 'node:fs/promises';
-import path from 'node:path';
-import process from 'node:process';
+import { platform } from '#platform';
+import { corsAwareFetch } from './cache.ts';
 import { normalizeCompanyName, slugMatchesCompany } from './companies.ts';
-import { dataDir, writeFileAtomic } from './paths.ts';
 import { scraperNames, scrapers, type ScraperName } from './scrapers/index.ts';
 import { type ParsedUrl } from './scrapers/Scraper.ts';
 import { applyOverrides, time } from './utils/misc.ts';
@@ -10,7 +8,8 @@ import { applyOverrides, time } from './utils/misc.ts';
 export interface SearchConfig {
   /**
    * SerpApi key. Defaults to `SERP_API_TOKEN` in the environment, then
-   * `SERPAPI_KEY` / `SERPAPI_API_KEY`.
+   * `SERPAPI_KEY` / `SERPAPI_API_KEY`. Browsers have no environment, so
+   * there search stays off until a key is passed to `configureSearch`.
    */
   apiKey: string | null;
   /**
@@ -60,16 +59,16 @@ export function configureSearch(config: Partial<SearchConfig>): void {
 }
 
 export function getSearchConfig(): SearchConfig {
-  const env = process.env;
-  const limit = Number(env.SERPAPI_SEARCH_LIMIT);
-  const period = env.SERPAPI_SEARCH_PERIOD;
+  const { env } = platform;
+  const limit = Number(env('SERPAPI_SEARCH_LIMIT'));
+  const period = env('SERPAPI_SEARCH_PERIOD');
 
   return {
     ...DEFAULTS,
     apiKey:
-      env.SERP_API_TOKEN ||
-      env.SERPAPI_KEY ||
-      env.SERPAPI_API_KEY ||
+      env('SERP_API_TOKEN') ||
+      env('SERPAPI_KEY') ||
+      env('SERPAPI_API_KEY') ||
       DEFAULTS.apiKey,
     ...(Number.isFinite(limit) && limit > 0 ? { limit } : {}),
     ...(period === 'day' || period === 'month' ? { period } : {}),
@@ -203,7 +202,7 @@ function runSearch(
       // dispatched still spends quota
       await writeUsage({ ...usage, count: usage.count + 1 });
 
-      const res = await fetch(url);
+      const res = await corsAwareFetch(url);
       if (!res.ok) return null;
 
       const data = (await res.json()) as {
@@ -266,12 +265,12 @@ interface SearchRecord {
   ts: number;
 }
 
-const resultsFile = path.join(dataDir, 'search-results.json');
+const resultsFile = platform.dataFile('search-results.json');
 
 /** Everything previously searched for, keyed by normalized company name */
 async function readResults(): Promise<Record<string, SearchRecord>> {
   try {
-    return JSON.parse(await fs.readFile(resultsFile, 'utf8'));
+    return JSON.parse((await platform.readText(resultsFile)) ?? '{}');
   } catch {
     return {};
   }
@@ -289,7 +288,10 @@ async function rememberResults(
     results[normalizeCompanyName(companyName)] = { boards, ts };
   }
 
-  await writeFileAtomic(resultsFile, JSON.stringify(results, null, 2) + '\n');
+  await platform.writeText(
+    resultsFile,
+    JSON.stringify(results, null, 2) + '\n'
+  );
 }
 
 /** Forgets remembered search results. Returns how many companies were dropped */
@@ -298,7 +300,7 @@ export async function clearSearchCache(): Promise<number> {
   const count = Object.keys(results).length;
 
   inFlight.clear();
-  await writeFileAtomic(resultsFile, '{}\n');
+  await platform.writeText(resultsFile, '{}\n');
   return count;
 }
 
@@ -308,7 +310,7 @@ interface Usage {
   count: number;
 }
 
-const usageFile = path.join(dataDir, 'search-usage.json');
+const usageFile = platform.dataFile('search-usage.json');
 
 function currentPeriod(config: SearchConfig): string {
   const date = new Date().toISOString().slice(0, 10);
@@ -319,7 +321,9 @@ async function readUsage(config: SearchConfig): Promise<Usage> {
   const period = currentPeriod(config);
 
   try {
-    const usage = JSON.parse(await fs.readFile(usageFile, 'utf8')) as Usage;
+    const usage = JSON.parse(
+      (await platform.readText(usageFile)) ?? ''
+    ) as Usage;
     // a new period starts the count over
     if (usage.period === period) return usage;
   } catch {}
@@ -328,5 +332,5 @@ async function readUsage(config: SearchConfig): Promise<Usage> {
 }
 
 async function writeUsage(usage: Usage): Promise<void> {
-  await writeFileAtomic(usageFile, JSON.stringify(usage, null, 2) + '\n');
+  await platform.writeText(usageFile, JSON.stringify(usage, null, 2) + '\n');
 }

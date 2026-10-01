@@ -35,7 +35,7 @@ export default class LeverScraper extends Scraper {
     return `https://jobs.lever.co/${this.companySlug}/${id}`;
   }
 
-  [Symbol.dispose]() {
+  dispose() {
     // force this out of memory just to be sure
     this.jobsCache.clear();
   }

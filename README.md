@@ -32,7 +32,7 @@ These are its current counts for the job boards this package supports:
 yarn add @chrisdothtml/job-scraper
 ```
 
-No runtime dependencies. Requires Node 22+.
+No runtime dependencies. Requires Node 22+, or a bundler for browsers (where only some boards are reachable; see `CorsError` in [DOCS.md](./DOCS.md)).
 
 ## Usage
 

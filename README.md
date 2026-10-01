@@ -4,6 +4,8 @@
 
 This package provides lightweight, reliable, http-only scrapers for the most popular job board providers. It ships with a small list of pre-mapped companies, but it learns new ones as you look them up.
 
+**[Try it live in your browser](https://chrisdothtml.github.io/job-scraper/)**
+
 One benefit this package provides (in addition to reliable job board scrapers) is its ability to infer the correct job board for a company from a variety of different input formats (e.g. company name, careers homepage URL, individual job post URL).
 
 <details>

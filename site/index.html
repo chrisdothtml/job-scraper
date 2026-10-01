@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>job-scraper</title>
+    <meta
+      name="description"
+      content="List jobs for 15k+ companies for free. Runs locally; no headless browsers or API tokens." />
+    <link rel="icon" href="data:," />
+    <link rel="stylesheet" href="./style.css" />
+    <script type="module" src="./main.js"></script>
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="./">job-scraper</a>
+      <nav>
+        <a href="https://github.com/chrisdothtml/job-scraper">GitHub</a>
+        <a href="https://www.npmjs.com/package/@chrisdothtml/job-scraper"
+          >npm</a
+        >
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero" aria-labelledby="hero-title">
+        <h1 id="hero-title">List jobs for 15k+ companies, for free</h1>
+        <p class="lede">
+          Lightweight, http-only scrapers for the popular job boards. Give it a
+          company name or any URL a person would paste, and it works out which
+          board to ask. Try it live: this demo runs the package right here in
+          your browser.
+        </p>
+
+        <form id="demo" class="demo" autocomplete="off">
+          <fieldset class="modes">
+            <legend class="visually-hidden">What to fetch</legend>
+            <label>
+              <input type="radio" name="mode" value="company" checked />
+              Fetch all company jobs
+            </label>
+            <label>
+              <input type="radio" name="mode" value="job" />
+              Fetch job for company
+            </label>
+          </fieldset>
+
+          <div class="query">
+            <label for="demo-input" class="visually-hidden"
+              >Company name or URL</label
+            >
+            <input
+              id="demo-input"
+              name="input"
+              type="text"
+              required
+              spellcheck="false"
+              autocapitalize="off" />
+            <button type="submit">Fetch</button>
+          </div>
+
+          <div class="examples">
+            <span id="examples-label">Try:</span>
+            <ul id="examples" aria-labelledby="examples-label"></ul>
+          </div>
+        </form>
+
+        <div id="result" class="result" aria-live="polite"></div>
+
+        <p class="fineprint">
+          Responses are cached in your browser.
+          <button type="button" id="clear-cache" class="link">
+            Clear cache
+          </button>
+        </p>
+      </section>
+
+      <section id="docs" class="docs" aria-labelledby="docs-title">
+        <h2 id="docs-title">Docs</h2>
+        <p>
+          Full docs are on their way here. Until then, see
+          <a
+            href="https://github.com/chrisdothtml/job-scraper/blob/main/DOCS.md"
+            >DOCS.md</a
+          >.
+        </p>
+        <pre><code>yarn add @chrisdothtml/job-scraper</code></pre>
+      </section>
+    </main>
+  </body>
+</html>

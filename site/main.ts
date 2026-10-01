@@ -11,11 +11,15 @@ import {
   type Job,
   type ListedJob,
 } from '../src/index.ts';
+import { descriptionHtml } from './description.ts';
+import { sanitizeHtml } from './sanitize.ts';
 
 type Mode = 'company' | 'job';
 
 interface Example {
   label: string;
+  /** The company behind the example, for a Node command if it's blocked */
+  company: string;
   /** Resolved at click time, since job ids go stale */
   input: () => Promise<string>;
 }
@@ -43,29 +47,34 @@ const placeholders: Record<Mode, string[]> = {
 
 const examples: Record<Mode, Example[]> = {
   company: [
-    { label: 'Airbnb', input: async () => 'Airbnb' },
+    { label: 'Airbnb', company: 'Airbnb', input: async () => 'Airbnb' },
     {
       label: 'Ashby board URL',
+      company: 'https://jobs.ashbyhq.com/zapier',
       input: async () => 'https://jobs.ashbyhq.com/zapier',
     },
     {
       label: 'Careers site',
+      company: 'https://careers.duolingo.com',
       input: async () => 'https://careers.duolingo.com',
     },
   ],
   job: [
     {
       label: 'Greenhouse job URL',
+      company: 'Airbnb',
       input: async () =>
         `https://job-boards.greenhouse.io/airbnb/jobs/${(await firstJob('Airbnb')).id}`,
     },
     {
       label: 'Ashby job URL',
+      company: 'Zapier',
       input: async () => (await firstJob('Zapier')).url,
     },
     {
       // Airbnb's own careers site embeds its Greenhouse board via `?gh_jid=`
       label: 'Embedded ?gh_jid= URL',
+      company: 'Airbnb',
       input: async () => (await firstJob('Airbnb')).url,
     },
   ],
@@ -127,6 +136,10 @@ function renderExamples() {
 
 form.addEventListener('change', (event) => {
   if ((event.target as HTMLInputElement).name !== 'mode') return;
+  // whatever was in flight was for the other mode, so drop it
+  currentRun++;
+  setBusy(false);
+  setResult();
   placeholderIndex = 0;
   showPlaceholder();
   renderExamples();
@@ -168,7 +181,18 @@ async function runExample(example: Example) {
   } catch (error) {
     if (runId !== currentRun) return;
     setBusy(false);
-    setResult(renderError(error, currentMode, ''));
+    // the example's URL never resolved, so point Node at its company instead
+    setResult(
+      renderError(
+        error,
+        currentMode === 'company'
+          ? nodeCall('listCompanyJobs', example.company)
+          : {
+              fns: ['listCompanyJobs', 'fetchJob'],
+              expr: `fetchJob((await listCompanyJobs(${JSON.stringify(example.company)}))[0].url)`,
+            }
+      )
+    );
   }
 }
 
@@ -187,7 +211,15 @@ async function run(currentMode: Mode, value: string) {
     setResult(...nodes, h('p', { class: 'elapsed' }, `Took ${elapsed} ms`));
   } catch (error) {
     if (runId !== currentRun) return;
-    setResult(renderError(error, currentMode, value));
+    setResult(
+      renderError(
+        error,
+        nodeCall(
+          currentMode === 'company' ? 'listCompanyJobs' : 'fetchJob',
+          value
+        )
+      )
+    );
   } finally {
     if (runId === currentRun) setBusy(false);
   }
@@ -224,7 +256,22 @@ function renderJob(job: Job): Node[] {
   return [
     h('h2', { class: 'job-title' }, jobLink(job)),
     h('p', { class: 'location' }, job.location),
-    h('pre', { class: 'content' }, formatContent(job.content)),
+    ...renderContent(job.content),
+  ];
+}
+
+/**
+ * Renders the description formatted (through the allowlist sanitizer) with
+ * the raw content tucked away beneath it, or just the raw content when no
+ * description can be found
+ */
+function renderContent(content: string): Node[] {
+  const raw = h('pre', { class: 'content' }, formatContent(content));
+  const html = descriptionHtml(content);
+  if (!html) return [raw];
+  return [
+    h('div', { class: 'description' }, sanitizeHtml(html)),
+    h('details', { class: 'raw' }, h('summary', {}, 'Raw content'), raw),
   ];
 }
 
@@ -237,7 +284,18 @@ function formatContent(content: string): string {
   }
 }
 
-function renderError(error: unknown, currentMode: Mode, value: string): Node {
+/** A call to run from Node, for boards the browser can't reach */
+interface NodeCall {
+  fns: string[];
+  expr: string;
+}
+
+const nodeCall = (fn: string, arg: string): NodeCall => ({
+  fns: [fn],
+  expr: `${fn}(${JSON.stringify(arg)})`,
+});
+
+function renderError(error: unknown, call: NodeCall): Node {
   const blocked =
     error instanceof CorsError ||
     (error instanceof UnresolvedCompanyError && error.blocked);
@@ -247,12 +305,11 @@ function renderError(error: unknown, currentMode: Mode, value: string): Node {
     return h('p', { class: 'error', role: 'alert' }, message);
   }
 
-  const fn = currentMode === 'company' ? 'listCompanyJobs' : 'fetchJob';
-  // single-quoted for the shell, so only `'` needs escaping
-  const arg = JSON.stringify(value).replaceAll("'", `'\\''`);
+  const script = `import { ${call.fns.join(', ')} } from "@chrisdothtml/job-scraper"; console.log(await ${call.expr})`;
   const snippet = [
     'npm install @chrisdothtml/job-scraper',
-    `node --input-type=module -e 'import { ${fn} } from "@chrisdothtml/job-scraper"; console.log(await ${fn}(${arg}))'`,
+    // single-quoted for the shell, so only `'` needs escaping
+    `node --input-type=module -e '${script.replaceAll("'", `'\\''`)}'`,
   ].join('\n');
 
   return h(

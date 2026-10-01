@@ -270,6 +270,43 @@ pre {
   margin: 0;
 }
 
+.description {
+  max-height: 32rem;
+  overflow-y: auto;
+  overflow-wrap: anywhere;
+  padding: 0.25rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.description :is(h1, h2, h3, h4, h5, h6) {
+  font-size: 1rem;
+  margin: 1.25rem 0 0.5rem;
+}
+
+.description :is(p, ul, ol) {
+  margin: 0.5rem 0;
+}
+
+.description p:empty {
+  display: none;
+}
+
+.raw {
+  margin-top: 0.75rem;
+}
+
+.raw summary {
+  color: var(--muted);
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.raw pre {
+  margin-top: 0.5rem;
+}
+
 .error {
   color: var(--error);
 }

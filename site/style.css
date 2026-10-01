@@ -396,6 +396,24 @@ pre {
   border-color: var(--accent);
 }
 
+/* the button would cover the end of the first line, so it only shows when
+   wanted where there's hover, and gets a row of its own where there isn't */
+@media (hover: hover) {
+  .copy {
+    opacity: 0;
+  }
+
+  .code-block:is(:hover, :focus-within) .copy {
+    opacity: 1;
+  }
+}
+
+@media (hover: none) {
+  .code-block:has(.copy) pre {
+    padding-top: 2.25rem;
+  }
+}
+
 .tok-keyword {
   color: var(--tok-keyword);
 }

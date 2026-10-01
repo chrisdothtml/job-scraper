@@ -6,6 +6,7 @@ import * as esbuild from 'esbuild';
 import { watch } from 'node:fs';
 import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import * as pkg from '../src/index.ts';
 import { highlightTs } from './highlight.ts';
 
 const siteDir = import.meta.dirname;
@@ -67,6 +68,27 @@ function tidy(lines: string[]): string {
 }
 
 /**
+ * Throws when a snippet uses one of the package's exports without importing
+ * it, so every code block still runs when copied on its own
+ */
+function checkImports(code: string, where: string) {
+  const imported = new Set(
+    [...code.matchAll(/import\s*{([^}]*)}/g)].flatMap(([, names]) =>
+      names!.split(',').map((name) => name.replace(/^\s*type\s/, '').trim())
+    )
+  );
+  // comments and strings say plenty of words that happen to be exports
+  const bare = code.replace(/\/\/.*|'[^'\n]*'|`[^`]*`/g, '');
+  const missing = Object.keys(pkg).filter(
+    (name) =>
+      !imported.has(name) && new RegExp(`(?<![.\\w])${name}\\b`).test(bare)
+  );
+  if (missing.length) {
+    throw new Error(`snippets/${where} uses ${missing.join(', ')} unimported`);
+  }
+}
+
+/**
  * Renders the page: inlines `docs.html` into `index.html`, and swaps each
  * snippet placeholder for its highlighted code
  */
@@ -80,7 +102,9 @@ async function renderHtml() {
 
   const placeholder = /<pre data-snippet="([\w-]+)(?:#([\w-]+))?"><\/pre>/g;
   for (const [tag, file, region] of [...html.matchAll(placeholder)]) {
-    const code = highlightTs(await readSnippet(file!, region));
+    const snippet = await readSnippet(file!, region);
+    checkImports(snippet, region ? `${file}#${region}` : file!);
+    const code = highlightTs(snippet);
     // a function, so `$` in the code isn't read as a replacement pattern
     html = html.replace(
       tag,

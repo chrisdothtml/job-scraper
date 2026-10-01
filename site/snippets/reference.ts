@@ -34,33 +34,6 @@ import { scrapers } from '@chrisdothtml/job-scraper';
   // #endregion
 }
 
-// #region search-config
-import { configureSearch } from '@chrisdothtml/job-scraper';
-
-configureSearch({
-  apiKey: 'your SerpApi key',
-  limit: 100,
-  period: 'month',
-});
-
-await resolveCompany('Whatnot');
-// { name: 'Whatnot', scraper: 'WorkdayScraper', slug: 'whatnot.wd1.Whatnot', discovered: true }
-// #endregion
-
-// #region search-batch
-import {
-  clearSearchCache,
-  searchForBoardsBatch,
-} from '@chrisdothtml/job-scraper';
-
-await searchForBoardsBatch(['Klaviyo', 'Notion', 'Whatnot']); // one search
-await clearSearchCache(); // start over
-// #endregion
-
-// #region search-off
-await resolveCompany({ company: 'Whatnot', search: false });
-// #endregion
-
 // #region cache-config
 import { clearCache, configureCache, time } from '@chrisdothtml/job-scraper';
 

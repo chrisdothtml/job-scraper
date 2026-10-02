@@ -38,8 +38,10 @@ No runtime dependencies. Requires Node 22+, or a bundler for browsers (where onl
 
 ## Usage
 
+**List company jobs**
+
 ```ts
-import { listCompanyJobs, fetchJob } from '@chrisdothtml/job-scraper';
+import { listCompanyJobs } from '@chrisdothtml/job-scraper';
 
 // works by name alone, across whichever board the company happens to use
 await listCompanyJobs('Airbnb'); // Greenhouse
@@ -52,12 +54,17 @@ await listCompanyJobs('https://jobs.ashbyhq.com/zapier');
 await listCompanyJobs(
   'https://careers.airbnb.com/positions/8184174?gh_jid=8184174'
 );
+```
 
-// fetch a single posting's full content the same way
+**Fetch a single job**
+
+```ts
+import { fetchJob } from '@chrisdothtml/job-scraper';
+
 await fetchJob('https://job-boards.greenhouse.io/airbnb/jobs/7712345');
 ```
 
-See the [docs](https://chrisdothtml.github.io/job-scraper/#docs) for the full API, recipes, how resolution works, caching, and configuration.
+See the [docs](https://chrisdothtml.github.io/job-scraper/) for the full API, recipes, how resolution works, caching, and configuration.
 
 ## License
 

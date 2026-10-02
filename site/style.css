@@ -86,7 +86,6 @@
 
 body {
   margin: 0;
-  padding-bottom: 7.5rem;
   background: var(--bg);
   color: var(--fg);
   font:
@@ -208,6 +207,44 @@ button {
 
 .site-header nav svg {
   color: var(--muted);
+}
+
+.site-header nav .logo {
+  color: var(--fg);
+}
+
+.site-footer {
+  margin-top: 7.5rem;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 14px;
+}
+
+.site-footer .wrap {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem 1.5rem;
+  padding-block: 2rem;
+}
+
+.site-footer p {
+  margin: 0;
+}
+
+.site-footer nav {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.site-footer a {
+  color: inherit;
+}
+
+.site-footer a:hover {
+  color: var(--fg);
 }
 
 /* --- hero --- */

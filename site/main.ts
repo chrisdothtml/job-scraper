@@ -126,7 +126,7 @@ function showInCode() {
   const value = input.value.trim() || input.placeholder.replace(/^e\.g\. /, '');
   // highlightTs escapes everything it's given
   inCode.innerHTML = highlightTs(
-    `await ${fn}('${value.replace(/['\\]/g, '\\$&')}')`
+    `await ${fn}(\n  '${value.replace(/['\\]/g, '\\$&')}'\n)`
   );
   inCode.parentElement!.hidden = false;
 }

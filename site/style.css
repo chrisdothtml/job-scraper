@@ -243,6 +243,12 @@ button {
   color: inherit;
 }
 
+.site-footer nav a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .site-footer a:hover {
   color: var(--fg);
 }

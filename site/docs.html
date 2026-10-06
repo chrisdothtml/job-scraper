@@ -105,6 +105,54 @@
     </p>
   </details>
 
+  <details id="homepage">
+    <summary><h3>Company homepages</h3></summary>
+    <p>
+      <code>resolveHomepage</code> finds a company's own website (not its
+      careers board), e.g. to look up its favicon. It takes a company record or
+      anything <code>resolveCompany</code> takes, and resolves to the site's
+      origin, or <code>null</code>.
+    </p>
+    <pre data-snippet="reference#homepage"></pre>
+    <p>Sources are tried most trustworthy first:</p>
+    <ol>
+      <li>
+        the website the company gave its board (Ashby, Greenhouse, Workable and
+        SmartRecruiters keep one)
+      </li>
+      <li>
+        the parent of a careers domain it posts on
+        (<code>careers.acme.com</code>)
+      </li>
+      <li>name-to-domain lookups (Clearbit's autocomplete, Wikidata)</li>
+      <li>domains guessed from its name and board slug</li>
+      <li>
+        a web search, when turned on (below) and a SerpApi key is configured
+      </li>
+    </ol>
+    <p>
+      Everything past the board is a candidate that has to be confirmed by
+      fetching it: the page must link to the company's board, or call itself by
+      the company's name. Every source fails quietly, so one going away costs
+      coverage, never an error. The answer is saved on the company's registry
+      entry, and so is a miss, which is retried after 30 days or on the next
+      release, whichever comes first. Every shipped company comes with its
+      homepage already filled in.
+    </p>
+    <p>
+      Without search, it finds the right homepage for roughly 96% of the shipped
+      companies. What it gets wrong is mostly one-word generic names whose board
+      doesn't record a website ("Granola", "ICON"). Search costs one SerpApi
+      search per company the free sources can't settle, and it runs whenever
+      none of them found a page linking back to the board, not only when they
+      found nothing. Turn it on for every call with
+      <code>configureSearch({ homepages: true })</code> (or
+      <code>SERPAPI_HOMEPAGE_SEARCH=1</code>), or per call with
+      <code>{ search: true }</code>. With answers remembered per company, it's
+      cheap whenever companies are looked up rarely.
+    </p>
+  </details>
+
   <details id="scrapers">
     <summary><h3>Scrapers directly</h3></summary>
     <p>
@@ -238,7 +286,8 @@
         <div class="code-block" data-lang="env">
           <pre><code>SERP_API_TOKEN=...  # or SERPAPI_KEY, or SERPAPI_API_KEY
 SERPAPI_SEARCH_LIMIT=100
-SERPAPI_SEARCH_PERIOD=month</code></pre>
+SERPAPI_SEARCH_PERIOD=month
+SERPAPI_HOMEPAGE_SEARCH=1</code></pre>
         </div>
         <p>Browsers have no environment, so they use the code form.</p>
       </div>
@@ -282,6 +331,14 @@ SERPAPI_SEARCH_PERIOD=month</code></pre>
             <td><code>batchSize</code></td>
             <td><code>5</code></td>
             <td>Companies per query in a batched search</td>
+          </tr>
+          <tr>
+            <td><code>homepages</code></td>
+            <td><code>false</code></td>
+            <td>
+              Let <code>resolveHomepage</code> search (see
+              <a href="#homepage">Company homepages</a>)
+            </td>
           </tr>
         </tbody>
       </table>
@@ -342,11 +399,12 @@ SERPAPI_SEARCH_PERIOD=month</code></pre>
       (exported as <code>seedCompanies</code>). Entries carry the board (<code
         >scraper</code
       >
-      + <code>slug</code>) and, where known, the <code>domains</code> the
-      company posts on: never a shared board host, which would point every
-      company on that board at one entry. On first run it's copied into the data
-      dir, which then becomes the live registry. Companies discovered at runtime
-      are appended there, not to the seed.
+      + <code>slug</code>), its <code>homepage</code> (see
+      <a href="#homepage">Company homepages</a>) and, where known, the
+      <code>domains</code> the company posts on: never a shared board host,
+      which would point every company on that board at one entry. On first run
+      it's copied into the data dir, which then becomes the live registry.
+      Companies discovered at runtime are appended there, not to the seed.
     </p>
     <p>
       Each entry records where it came from (<code>seed</code> or
@@ -618,6 +676,12 @@ JOB_SCRAPER_CACHE_TTL=3600000</code></pre>
         <code>CorsError</code>; when it was hit during resolution instead, the
         <code>UnresolvedCompanyError</code> has <code>blocked</code> set. Either
         way it works from Node, which doesn't enforce CORS.
+      </li>
+      <li>
+        <code>resolveHomepage</code> can't read most candidate sites, so it
+        can't confirm them. It still uses the board's declared website, a
+        careers domain's parent, and an exact-name Clearbit or Wikidata match,
+        but never a guessed domain.
       </li>
       <li>
         Configuration is <code>configureCache</code> and

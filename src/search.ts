@@ -33,6 +33,14 @@ export interface SearchConfig {
    * results attributed back by slug, so this many companies cost one search.
    */
   batchSize: number;
+  /**
+   * Whether `resolveHomepage` searches by default. Off unless asked for, via
+   * this or `SERPAPI_HOMEPAGE_SEARCH=1`: a homepage search costs one search
+   * per company the free sources can't settle. Worth it when lookups are
+   * rare enough that the quota doesn't matter. `resolveHomepage`'s own
+   * `search` option overrides this per call.
+   */
+  homepages: boolean;
 }
 
 const DEFAULTS: SearchConfig = {
@@ -42,6 +50,7 @@ const DEFAULTS: SearchConfig = {
   resultCount: 10,
   resultTtl: 30 * time.day,
   batchSize: 5,
+  homepages: false,
 };
 
 let overrides: Partial<SearchConfig> = {};
@@ -72,6 +81,9 @@ export function getSearchConfig(): SearchConfig {
       DEFAULTS.apiKey,
     ...(Number.isFinite(limit) && limit > 0 ? { limit } : {}),
     ...(period === 'day' || period === 'month' ? { period } : {}),
+    ...(/^(1|true|on|yes)$/i.test(env('SERPAPI_HOMEPAGE_SEARCH') ?? '')
+      ? { homepages: true }
+      : {}),
     ...overrides,
   };
 }
@@ -174,46 +186,21 @@ function runSearch(
   if (existing) return existing;
 
   const promise = (async () => {
-    const usage = await readUsage(config);
-    if (usage.count >= config.limit) return null;
-
     const domains = scraperNames
       .flatMap((name) => [...scrapers[name].boardDomains])
       .map((domain) => `site:${domain}`)
       .join(' OR ');
     const names = chunk.map((name) => `"${name}"`).join(' OR ');
 
-    const url = new URL('https://serpapi.com/search.json');
-    url.searchParams.set('engine', 'google');
-    url.searchParams.set(
-      'q',
-      chunk.length > 1 ? `(${names}) (${domains})` : `${names} (${domains})`
-    );
+    const query =
+      chunk.length > 1 ? `(${names}) (${domains})` : `${names} (${domains})`;
     // one query covering several companies needs room for all of them
-    url.searchParams.set(
-      'num',
-      String(chunk.length > 1 ? 100 : config.resultCount)
+    const links = await querySearch(
+      query,
+      chunk.length > 1 ? 100 : config.resultCount,
+      config
     );
-    url.searchParams.set('api_key', config.apiKey!);
-
-    let links: string[];
-    try {
-      // counted before the response lands: a search that errors after being
-      // dispatched still spends quota
-      await writeUsage({ ...usage, count: usage.count + 1 });
-
-      const res = await corsAwareFetch(url);
-      if (!res.ok) return null;
-
-      const data = (await res.json()) as {
-        organic_results?: { link?: string }[];
-      };
-      links = (data.organic_results ?? [])
-        .map(({ link }) => link)
-        .filter((link): link is string => Boolean(link));
-    } catch {
-      return null;
-    }
+    if (!links) return null;
 
     const found = new Map<string, SearchedBoard[]>(
       chunk.map((companyName) => [companyName, []])
@@ -243,6 +230,65 @@ function runSearch(
 
   inFlight.set(key, promise);
   return promise;
+}
+
+/**
+ * Runs one web search and returns the result links, best first. Null when
+ * search isn't configured, is out of quota, or the request failed; search is
+ * always optional, so none of those throw.
+ */
+async function querySearch(
+  query: string,
+  resultCount: number,
+  config: SearchConfig
+): Promise<string[] | null> {
+  if (!config.apiKey) return null;
+
+  const usage = await readUsage(config);
+  if (usage.count >= config.limit) return null;
+
+  const url = new URL('https://serpapi.com/search.json');
+  url.searchParams.set('engine', 'google');
+  url.searchParams.set('q', query);
+  url.searchParams.set('num', String(resultCount));
+  url.searchParams.set('api_key', config.apiKey);
+
+  try {
+    // counted before the response lands: a search that errors after being
+    // dispatched still spends quota
+    await writeUsage({ ...usage, count: usage.count + 1 });
+
+    const res = await corsAwareFetch(url);
+    if (!res.ok) return null;
+
+    const data = (await res.json()) as {
+      organic_results?: { link?: string }[];
+    };
+    return (data.organic_results ?? [])
+      .map(({ link }) => link)
+      .filter((link): link is string => Boolean(link));
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Asks a web search for a company's own website. Returns the result links,
+ * best first, for the caller to verify; an empty array when search isn't
+ * configured or out of quota. Unlike board searches these aren't
+ * remembered, since `resolveHomepage` records its own outcome.
+ */
+export async function searchForHomepage(
+  companyName: string
+): Promise<string[]> {
+  const config = getSearchConfig();
+  return (
+    (await querySearch(
+      `"${companyName}" official website`,
+      config.resultCount,
+      config
+    )) ?? []
+  );
 }
 
 function parseResult(link: string): SearchedBoard | null {

@@ -9,6 +9,10 @@ export interface SniffedBoard extends ParsedUrl {
   hits: number;
 }
 
+/** Sent where a site would otherwise serve a stub to non-browser agents */
+export const BROWSER_USER_AGENT =
+  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0 Safari/537.36';
+
 // URLs as they appear in markup: script/link hrefs, iframe srcs, inline JS
 const URL_PATTERN = /https?:\/\/[a-z0-9.-]+\.[a-z]{2,}(?:\/[^\s"'<>()\\]*)?/gi;
 
@@ -115,8 +119,7 @@ export async function sniffPage(url: string): Promise<SniffedPage> {
     const res = await cachedFetch.call({ cacheTTL: time.day }, url, {
       headers: {
         // some careers sites serve a stub to non-browser agents
-        'User-Agent':
-          'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0 Safari/537.36',
+        'User-Agent': BROWSER_USER_AGENT,
       },
     });
 

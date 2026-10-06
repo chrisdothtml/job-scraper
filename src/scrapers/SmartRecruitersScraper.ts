@@ -54,6 +54,24 @@ export default class SmartRecruitersScraper extends Scraper {
     return { slug, jobId: id ?? null };
   }
 
+  // the hosted careers page links back to the company's site from its nav
+  static async fetchHomepage(
+    slug: string,
+    signal?: AbortSignal
+  ): Promise<string | null> {
+    const res = await cachedFetch.call(
+      { cacheTTL: time.day },
+      `https://careers.smartrecruiters.com/${slug}`,
+      { signal }
+    );
+    const html = await res.text();
+    return (
+      /<a[^>]+href=["']([^"']+)["'][^>]*>\s*Home Page\s*<\/a>/i.exec(
+        html
+      )?.[1] ?? null
+    );
+  }
+
   jobUrl(id: string): string {
     return `https://jobs.smartrecruiters.com/${this.companySlug}/${id}`;
   }

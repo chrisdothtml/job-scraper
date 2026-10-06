@@ -14,6 +14,22 @@ await listCompanies(); // everything currently known
 await registerCompany({ name: 'Acme', scraper: 'LeverScraper', slug: 'acme' });
 // #endregion
 
+// #region homepage
+import { configureSearch, resolveHomepage } from '@chrisdothtml/job-scraper';
+
+await resolveHomepage('Ramp'); // 'https://ramp.com'
+await resolveHomepage('https://jobs.ashbyhq.com/zapier'); // anything resolveCompany takes
+
+// let it fall back to a web search when the free sources aren't conclusive
+configureSearch({ apiKey: 'your SerpApi key', homepages: true });
+
+// e.g. a company's icon, via Google's favicon service
+const homepage = await resolveHomepage('Ramp');
+const icon =
+  homepage &&
+  `https://www.google.com/s2/favicons?domain=${new URL(homepage).hostname}&sz=64`;
+// #endregion
+
 // #region direct bulk
 import { scrapers } from '@chrisdothtml/job-scraper';
 // #endregion

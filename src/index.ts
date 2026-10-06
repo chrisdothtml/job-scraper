@@ -27,9 +27,18 @@ export {
   normalizeCompanyName,
   normalizeDomain,
   registerCompany,
+  setCompanyHomepage,
   type Company,
+  type HomepageMiss,
   type StoredCompany,
 } from './companies.ts';
+export {
+  findHomepage,
+  resolveHomepage,
+  type FoundHomepage,
+  type HomepageOptions,
+  type HomepageSource,
+} from './homepage.ts';
 export { cacheDir, companiesFile, dataDir } from './paths.ts';
 export {
   boardHints,
@@ -66,6 +75,7 @@ export {
   getSearchConfig,
   searchForBoards,
   searchForBoardsBatch,
+  searchForHomepage,
   type BatchedSearch,
   type SearchConfig,
   type SearchedBoard,

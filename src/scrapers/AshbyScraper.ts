@@ -203,6 +203,30 @@ export default class AshbyScraper extends Scraper {
     return { slug, jobId: id ?? null };
   }
 
+  // the organization record behind the hosted board holds the website the
+  // company entered in Ashby's settings
+  static async fetchHomepage(
+    slug: string,
+    signal?: AbortSignal
+  ): Promise<string | null> {
+    const query =
+      'query Org($name: String!) { organization: organizationFromHostedJobsPageName(organizationHostedJobsPageName: $name, searchContext: JobBoard) { publicWebsite } }';
+    const res = await cachedFetch.call(
+      { cacheTTL: time.day },
+      'https://jobs.ashbyhq.com/api/non-user-graphql?op=Org',
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query, variables: { name: slug } }),
+        signal,
+      }
+    );
+    const data = (await res.json()) as {
+      data?: { organization?: { publicWebsite?: string | null } | null };
+    };
+    return data.data?.organization?.publicWebsite ?? null;
+  }
+
   jobUrl(id: string): string {
     return `https://jobs.ashbyhq.com/${this.companySlug}/${id}`;
   }

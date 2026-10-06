@@ -22,6 +22,11 @@ export interface Company {
    * directly, skipping discovery entirely.
    */
   domains?: string[];
+  /**
+   * The company's own website, as an origin (`https://ramp.com`). Distinct
+   * from `domains`, which are where it posts jobs. See `resolveHomepage`.
+   */
+  homepage?: string;
 }
 
 export interface StoredCompany extends Company {
@@ -31,6 +36,23 @@ export interface StoredCompany extends Company {
    * discarding what the user found themselves.
    */
   source: 'seed' | 'discovered';
+  /**
+   * When `resolveHomepage` last came up empty, so a company without a
+   * findable website doesn't cost a round of lookups on every call
+   */
+  homepageMiss?: HomepageMiss;
+}
+
+export interface HomepageMiss {
+  /** When the lookup ran */
+  ts: number;
+  /** Whether it included a web search */
+  searched: boolean;
+  /**
+   * The package version that ran it. A miss is only trusted by that same
+   * version, so a release with better resolution gets a fresh attempt
+   */
+  version: string;
 }
 
 interface Registry {
@@ -168,6 +190,12 @@ export function mergeRegistry(stored: StoredCompany[]): StoredCompany[] {
       continue;
     }
 
+    // a homepage found on this machine still stands if the shipped list
+    // doesn't have one of its own
+    if (company.homepage && !shipped.homepage) {
+      shipped.homepage = company.homepage;
+    }
+
     // the shipped record wins on scraper and slug, but domains are additive:
     // one the user saw this company on is still true after an upgrade
     const domains = union(shipped.domains, company.domains);
@@ -262,6 +290,29 @@ export async function addCompanyDomain(
   return company;
 }
 
+/**
+ * Records the outcome of a homepage lookup on a registered company: the
+ * homepage when one was found, otherwise the miss. Does nothing
+ * for a company the registry doesn't hold.
+ */
+export async function setCompanyHomepage(
+  name: string,
+  outcome: { homepage: string } | { miss: HomepageMiss }
+): Promise<StoredCompany | null> {
+  const company = await findCompany(name);
+  if (!company) return null;
+
+  if ('homepage' in outcome) {
+    company.homepage = outcome.homepage;
+    delete company.homepageMiss;
+  } else {
+    company.homepageMiss = outcome.miss;
+  }
+
+  await writeRegistry([...cache!.values()]);
+  return company;
+}
+
 function indexDomains(company: StoredCompany): void {
   for (const domain of company.domains ?? []) {
     const host = normalizeDomain(domain);
@@ -275,7 +326,9 @@ function union(a: string[] = [], b: string[] = []): string[] {
 
 function isStoredCompany(entry: unknown): entry is StoredCompany {
   if (!entry || typeof entry !== 'object') return false;
-  const { name, scraper, slug, source, domains } = entry as Record<
+  // `homepageMiss` goes unchecked: it's a cache, and `resolveHomepage`
+  // treats one it can't vouch for as stale rather than losing the company
+  const { name, scraper, slug, source, domains, homepage } = entry as Record<
     string,
     unknown
   >;
@@ -288,7 +341,9 @@ function isStoredCompany(entry: unknown): entry is StoredCompany {
     isScraperName(scraper) &&
     (source === 'seed' || source === 'discovered') &&
     (domains === undefined ||
-      (Array.isArray(domains) && domains.every((d) => typeof d === 'string')))
+      (Array.isArray(domains) &&
+        domains.every((d) => typeof d === 'string'))) &&
+    (homepage === undefined || typeof homepage === 'string')
   );
 }
 

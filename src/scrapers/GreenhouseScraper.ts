@@ -50,6 +50,22 @@ export default class GreenhouseScraper extends Scraper {
     return { slug, jobId };
   }
 
+  // the hosted board embeds its settings, including where the logo links;
+  // companies that set one point it at their own site (often its careers
+  // path, which `resolveHomepage` trims to the origin)
+  static async fetchHomepage(
+    slug: string,
+    signal?: AbortSignal
+  ): Promise<string | null> {
+    const res = await cachedFetch.call(
+      { cacheTTL: time.day },
+      `https://job-boards.greenhouse.io/${slug}`,
+      { signal }
+    );
+    const html = await res.text();
+    return /"logo":\{"href":"([^"]+)"/.exec(html)?.[1] ?? null;
+  }
+
   jobUrl(id: string): string {
     return `https://job-boards.greenhouse.io/${this.companySlug}/jobs/${id}`;
   }

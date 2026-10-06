@@ -42,6 +42,20 @@ export default class WorkableScraper extends Scraper {
     return { slug, jobId: j === 'j' ? (id ?? null) : null };
   }
 
+  // the account record carries the website the company set in Workable
+  static async fetchHomepage(
+    slug: string,
+    signal?: AbortSignal
+  ): Promise<string | null> {
+    const res = await cachedFetch.call(
+      { cacheTTL: time.day },
+      `https://apply.workable.com/api/v1/accounts/${slug}`,
+      { signal }
+    );
+    const data = (await res.json()) as { url?: string | null };
+    return data.url ?? null;
+  }
+
   jobUrl(id: string): string {
     return `https://apply.workable.com/${this.companySlug}/j/${id}/`;
   }

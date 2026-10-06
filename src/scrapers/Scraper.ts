@@ -100,6 +100,21 @@ export abstract class Scraper {
     return null;
   }
 
+  /**
+   * The company's own website, as the company told the board itself (a
+   * "company website" setting, or the link behind the board's logo). Null
+   * when the board doesn't record one, which is the default. May throw;
+   * `resolveHomepage` treats every source as best-effort.
+   */
+  static async fetchHomepage(
+    slug: string,
+    signal?: AbortSignal
+  ): Promise<string | null> {
+    void slug;
+    void signal;
+    return null;
+  }
+
   constructor(protected companySlug: string) {}
 
   /** Frees whatever the scraper holds in memory (cached postings, say) */

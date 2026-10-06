@@ -28,15 +28,18 @@ async function ensureDir(dir: string): Promise<string> {
 /**
  * Writes a file atomically. The data dir is shared across every project on
  * the machine, so two processes can be writing the registry at once; a
- * temp-then-rename keeps a reader from ever seeing a half-written file.
+ * temp-then-rename keeps a reader from ever seeing a half-written file. The
+ * temp name is unique per call, not just per process: concurrent writes within
+ * one process would otherwise share it, and the later rename would hit ENOENT.
  */
+let tempCounter = 0;
 async function writeFileAtomic(
   filePath: string,
   contents: string
 ): Promise<void> {
   await ensureDir(path.dirname(filePath));
 
-  const temp = `${filePath}.${process.pid}.tmp`;
+  const temp = `${filePath}.${process.pid}.${tempCounter++}.tmp`;
   await fs.writeFile(temp, contents);
   await fs.rename(temp, filePath);
 }

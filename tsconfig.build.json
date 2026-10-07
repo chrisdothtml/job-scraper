@@ -6,7 +6,10 @@
     "noEmit": false,
     // the published build has to load on every Node the package supports
     // (22+) and on browsers without newer syntax like `using`
-    "target": "es2022"
+    "target": "es2022",
+    // Bun types are for tests and dev scripts only; the build must stay
+    // runtime-agnostic, so `Bun` globals fail to typecheck here
+    "types": ["node"]
   },
   "exclude": ["dist", "node_modules", "src/__tests__", "src/scripts"]
 }

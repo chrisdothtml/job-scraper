@@ -1,0 +1,4 @@
+# Bun can't set resolve conditions or test isolation here, so `bun run test`
+# passes `--isolate --conditions=job-scraper-source` (see package.json)
+[test]
+preload = ["./src/__tests__/preload.ts"]

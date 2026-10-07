@@ -3,7 +3,7 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import process from 'node:process';
-import { after, test } from 'node:test';
+import { afterAll, test } from 'bun:test';
 
 // `paths.ts` reads this at import time, so it precedes the dynamic import
 const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'job-scraper-resolve-'));
@@ -17,7 +17,7 @@ const { resolveCompany, UnresolvedCompanyError } =
 
 const realFetch = globalThis.fetch;
 
-after(async () => {
+afterAll(async () => {
   globalThis.fetch = realFetch;
   await fs.rm(tmpDir, { recursive: true, force: true });
 });
@@ -48,7 +48,7 @@ function stubSmartRecruiters(titles: string[]): void {
       }),
       { status: 200 }
     );
-  }) as typeof fetch;
+  }) as unknown as typeof fetch;
 }
 
 test('a board holding only a placeholder posting is not adopted', async () => {

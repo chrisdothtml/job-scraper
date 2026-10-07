@@ -1,16 +1,12 @@
-import builtinAssert from 'node:assert';
-import { type TestContext } from 'node:test';
+import assert from 'node:assert';
 import { type Scraper } from '../scrapers/Scraper.ts';
 
 /**
  * Smoke-tests a scraper against its live board: lists jobs, then fetches the
- * first one. Lives here rather than on `Scraper` so that `node:assert` and
- * `node:test` stay out of the package, and out of browser bundles.
+ * first one. Lives here rather than on `Scraper` so that `node:assert` stays
+ * out of the package, and out of browser bundles.
  */
-export async function testScraper(scraper: Scraper, t?: TestContext) {
-  // allow to be called manually or as part of a node test run
-  const assert: typeof builtinAssert = (t?.assert ??
-    builtinAssert) as typeof builtinAssert;
+export async function testScraper(scraper: Scraper) {
   const jobs = await scraper.getJobsList(true);
 
   const firstJob = jobs[0];

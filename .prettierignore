@@ -1,5 +1,4 @@
 .data
-.yarn
 dist
 node_modules
 site-dist

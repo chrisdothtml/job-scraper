@@ -9,17 +9,16 @@
   "files.exclude": {
     ".playwright-mcp/": true,
     ".remember/": true,
-    ".yarn/": true,
     "node_modules/": true,
     // files that likely won't be touched ever and just pollute files list
     ".prettierignore": true,
     ".prettierrc.cjs": true,
     ".shellcheckrc": true,
-    ".yarnrc.yml": true,
+    "bunfig.toml": true,
     "knip.json": true,
     "LICENSE": true,
     "tsconfig.tsbuildinfo": true,
-    "yarn.lock": true
+    "bun.lock": true
   },
   // make sure TS auto-imports have the file extension (required for node)
   "js/ts.preferences.importModuleSpecifierEnding": "js",

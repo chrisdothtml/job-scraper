@@ -1,6 +1,6 @@
 import assert from 'node:assert';
 import process from 'node:process';
-import { test } from 'node:test';
+import { describe, test } from 'bun:test';
 import { seedCompanies } from '../companies.seed.ts';
 import { normalizeCompanyName } from '../companies.ts';
 import {
@@ -37,6 +37,7 @@ const TEST_COMPANIES = [
   'Google',
   'NVIDIA',
 ];
+const LIVE_TIMEOUT = 60_000;
 
 test('every seeded company names a real scraper', () => {
   for (const company of seedCompanies) {
@@ -205,20 +206,30 @@ test('slug candidates cover both board conventions', () => {
   );
 });
 
-test('Ensure Scrapers work', async (t) => {
+describe('Ensure Scrapers work', () => {
   const names = getCompaniesFromEnv() ?? TEST_COMPANIES;
 
   for (const name of names) {
     const company = seedCompanies.find(
       (c) => normalizeCompanyName(c.name) === normalizeCompanyName(name)
     );
-    assert.ok(company, `'${name}' is not in the seeded companies list`);
+    if (!company) {
+      test(name, () => {
+        assert.fail(`'${name}' is not in the seeded companies list`);
+      });
+      continue;
+    }
 
     const ScraperClass = getScraper(company.scraper);
-    await t.test(`${ScraperClass.name} (${company.slug})`, async (t) => {
-      using scraper = new ScraperClass(company.slug);
-      await testScraper(scraper, t);
-    });
+    test(
+      `${ScraperClass.name} (${company.slug})`,
+      async () => {
+        using scraper = new ScraperClass(company.slug);
+        await testScraper(scraper);
+      },
+      // these hit live boards, which can be slow
+      LIVE_TIMEOUT
+    );
   }
 });
 

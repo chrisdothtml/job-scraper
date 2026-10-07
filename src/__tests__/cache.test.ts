@@ -3,7 +3,7 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import process from 'node:process';
-import { after, beforeEach, test } from 'node:test';
+import { afterAll, beforeEach, test } from 'bun:test';
 
 // `paths.ts` reads this at import time, so it precedes the dynamic import
 const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'job-scraper-cache-'));
@@ -17,7 +17,7 @@ const { time } = await import('../utils/misc.ts');
 
 const realFetch = globalThis.fetch;
 
-after(async () => {
+afterAll(async () => {
   globalThis.fetch = realFetch;
   await fs.rm(tmpDir, { recursive: true, force: true });
 });
@@ -32,7 +32,7 @@ function stubFetch(body = 'hello') {
   globalThis.fetch = (async () => {
     state.calls++;
     return new Response(body, { status: 200 });
-  }) as typeof fetch;
+  }) as unknown as typeof fetch;
   return state;
 }
 
@@ -98,7 +98,7 @@ test('failed responses are neither cached nor returned as content', async () => 
       status: 404,
       statusText: 'Not Found',
     });
-  }) as typeof fetch;
+  }) as unknown as typeof fetch;
 
   await assert.rejects(() => cachedFetch('https://example.com/missing'));
   await assert.rejects(() => cachedFetch('https://example.com/missing'));
@@ -138,7 +138,7 @@ test('the environment configures the cache too', async () => {
 test('Node never reports a network failure as a CorsError', async () => {
   globalThis.fetch = (async () => {
     throw new TypeError('fetch failed');
-  }) as typeof fetch;
+  }) as unknown as typeof fetch;
 
   await assert.rejects(
     () => cachedFetch('https://example.com/offline'),

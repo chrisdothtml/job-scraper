@@ -17,7 +17,7 @@
     "url": "git+https://github.com/chrisdothtml/job-scraper.git"
   },
   "type": "module",
-  "packageManager": "yarn@4.13.0",
+  "packageManager": "bun@1.4.2",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -45,25 +45,22 @@
   "scripts": {
     "// checks": "----------------------------",
     "lint": "prettier --check .",
-    "lint-fix": "prettier --write . | grep -v ' (unchanged)'",
-    "test": "./bin/tsn --test './src/__tests__/**/*.test.ts'",
+    "lint-fix": "prettier --write . | grep -v ' (unchanged)' || true",
+    "test": "bun test --isolate --conditions=job-scraper-source",
     "typecheck": "tsc --noEmit && tsc --noEmit -p site",
     "// build": "-----------------------------",
-    "bake-version": "./bin/tsn src/scripts/bakeVersion.ts",
-    "build": "rm -rf dist && tsc -p tsconfig.build.json && yarn bake-version",
-    "prepack": "yarn build",
+    "bake-version": "bun src/scripts/bakeVersion.ts",
+    "build": "rm -rf dist && tsc -p tsconfig.build.json && bun run bake-version",
+    "prepack": "bun run build",
     "// site": "------------------------------",
-    "site:build": "./bin/tsn site/build.ts",
-    "site:dev": "./bin/tsn site/build.ts --dev"
-  },
-  "volta": {
-    "node": "25.2.1",
-    "yarn": "4.13.0"
+    "site:build": "bun --conditions=job-scraper-source site/build.ts",
+    "site:dev": "bun --conditions=job-scraper-source site/build.ts --dev"
   },
   "devDependencies": {
+    "@types/bun": "^1.4.2",
     "@types/node": "^22.18.0",
     "esbuild": "^0.28.2",
-    "prettier": "^3.6.2",
+    "prettier": "^3.8.2",
     "prettier-plugin-sh": "^0.18.0",
     "typescript": "^5.9.2"
   }

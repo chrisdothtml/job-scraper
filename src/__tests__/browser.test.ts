@@ -3,11 +3,11 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import process from 'node:process';
-import { after, beforeEach, test } from 'node:test';
+import { afterAll, beforeEach, test } from 'bun:test';
 
 /**
  * Runs the core against the browser platform, with in-memory stand-ins for
- * `localStorage` and the Cache API. Node resolves `#platform` to the Node
+ * `localStorage` and the Cache API. Tests resolve `#platform` to the Node
  * implementation, so its exports are swapped for the browser's in place
  * before anything that reads them is imported.
  */
@@ -74,7 +74,7 @@ const { time } = await import('../utils/misc.ts');
 
 const realFetch = globalThis.fetch;
 
-after(async () => {
+afterAll(async () => {
   globalThis.fetch = realFetch;
   await fs.rm(tmpDir, { recursive: true, force: true });
 });
@@ -89,7 +89,7 @@ function stubFetch(body = 'hello') {
   globalThis.fetch = (async () => {
     state.calls++;
     return new Response(body, { status: 200 });
-  }) as typeof fetch;
+  }) as unknown as typeof fetch;
   return state;
 }
 
@@ -114,7 +114,7 @@ function stubBoards(blocked: RegExp | null) {
       JSON.stringify({ offset: 0, limit: 100, totalFound: 2, content }),
       { status: 200 }
     );
-  }) as typeof fetch;
+  }) as unknown as typeof fetch;
 }
 
 test('the registry persists to localStorage, seed included', async () => {
@@ -210,7 +210,7 @@ test('without the Cache API, every request hits the network', async () => {
 test('a request that never got a response becomes a CorsError', async () => {
   globalThis.fetch = (async () => {
     throw new TypeError('Failed to fetch');
-  }) as typeof fetch;
+  }) as unknown as typeof fetch;
 
   await assert.rejects(
     () => cachedFetch.call({ cache: false }, 'https://example.com/c'),
@@ -220,7 +220,7 @@ test('a request that never got a response becomes a CorsError', async () => {
   // anything else is left as it was
   globalThis.fetch = (async () => {
     throw new RangeError('nope');
-  }) as typeof fetch;
+  }) as unknown as typeof fetch;
   await assert.rejects(
     () => cachedFetch.call({ cache: false }, 'https://example.com/c'),
     RangeError

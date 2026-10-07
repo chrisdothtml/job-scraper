@@ -3,7 +3,7 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import process from 'node:process';
-import { after, beforeEach, test } from 'node:test';
+import { afterAll, beforeEach, test } from 'bun:test';
 import { pkgVersion } from '../constants.ts';
 
 // `paths.ts` reads this at import time, so it precedes the dynamic import
@@ -12,7 +12,7 @@ const tmpDir = await fs.mkdtemp(
 );
 process.env.JOB_SCRAPER_DATA_DIR = tmpDir;
 // this suite exercises persistence itself, so a dev's own opt-out (set in
-// `.env`, loaded by `bin/tsn` for every run including this one) can't apply
+// `.env`, which Bun loads for every run including this one) can't apply
 delete process.env.DISABLE_COMPANY_REGISTRY;
 
 const {
@@ -31,7 +31,7 @@ const { seedCompanies } = await import('../companies.seed.ts');
 
 const registryFile = path.join(tmpDir, 'companies.json');
 
-after(() => fs.rm(tmpDir, { recursive: true, force: true }));
+afterAll(() => fs.rm(tmpDir, { recursive: true, force: true }));
 
 beforeEach(async () => {
   await fs.rm(registryFile, { force: true });

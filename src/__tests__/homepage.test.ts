@@ -3,7 +3,7 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import process from 'node:process';
-import { after, beforeEach, test } from 'node:test';
+import { afterAll, beforeEach, test } from 'bun:test';
 
 // `paths.ts` reads this at import time, so it precedes the dynamic import
 const tmpDir = await fs.mkdtemp(
@@ -31,7 +31,7 @@ const realFetch = globalThis.fetch;
 // every test stubs its own network, which a cached response would bypass
 configureCache({ enabled: false });
 
-after(async () => {
+afterAll(async () => {
   globalThis.fetch = realFetch;
   await fs.rm(tmpDir, { recursive: true, force: true });
 });
@@ -60,7 +60,7 @@ function stubNetwork(routes: Record<string, Route>): string[] {
       }
     }
     throw new TypeError('fetch failed', { cause: { code: 'ENOTFOUND' } });
-  }) as typeof fetch;
+  }) as unknown as typeof fetch;
   return requested;
 }
 

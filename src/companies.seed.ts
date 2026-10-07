@@ -34,7 +34,7 @@ export const seedCompanies: Company[] = [
   },
   {
     name: 'Amplitude',
-    scraper: 'GreenhouseScraper',
+    scraper: 'AshbyScraper',
     slug: 'amplitude',
     homepage: 'https://amplitude.com',
   },
@@ -624,12 +624,6 @@ export const seedCompanies: Company[] = [
     homepage: 'https://www.harvey.ai',
   },
   {
-    name: 'Hightouch',
-    scraper: 'GreenhouseScraper',
-    slug: 'hightouch',
-    homepage: 'https://hightouch.com',
-  },
-  {
     name: 'Hyperspell',
     scraper: 'AshbyScraper',
     slug: 'hyperspell',
@@ -955,8 +949,8 @@ export const seedCompanies: Company[] = [
   },
   {
     name: 'Postman',
-    scraper: 'GreenhouseScraper',
-    slug: 'postman',
+    scraper: 'WorkdayScraper',
+    slug: 'postman.wd108.careers',
     homepage: 'https://www.postman.com',
   },
   {

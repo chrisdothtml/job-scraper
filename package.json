@@ -1,6 +1,6 @@
 {
   "name": "@chrisdothtml/job-scraper",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "A collection of job board scrapers, plus utilities that resolve a scraper for a company on the fly",
   "keywords": [
     "jobs",

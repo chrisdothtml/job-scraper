@@ -2,6 +2,7 @@
   "recommendations": [
     "esbenp.prettier-vscode",
     "timonwong.shellcheck",
+    "typescriptteam.native-preview",
     "webpro.vscode-knip"
   ]
 }

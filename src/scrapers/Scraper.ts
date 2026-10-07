@@ -269,7 +269,7 @@ const OPEN_APPLICATION =
  * Whether a posting stands in for a job rather than being one. The title has
  * to consist of placeholder words entirely, so "Test Engineer" still counts.
  */
-function isPlaceholderJob(job: ListedJob): boolean {
+export function isPlaceholderJob(job: ListedJob): boolean {
   const title = typeof job?.title === 'string' ? job.title : '';
   if (OPEN_APPLICATION.test(title)) return true;
 

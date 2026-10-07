@@ -49,6 +49,7 @@
     "test": "bun test --isolate --conditions=job-scraper-source",
     "typecheck": "tsc --noEmit && tsc --noEmit -p site",
     "knip": "knip",
+    "check-boards": "bun --conditions=job-scraper-source src/scripts/checkBoards.ts",
     "// build": "-----------------------------",
     "bake-version": "bun src/scripts/bakeVersion.ts",
     "build": "rm -rf dist && tsc -p tsconfig.build.json && bun run bake-version",

@@ -807,10 +807,10 @@ export const seedCompanies: Company[] = [
     homepage: 'https://n8n.io',
   },
   {
-    name: 'NetEase',
-    scraper: 'AshbyScraper',
-    slug: 'netease',
-    homepage: 'https://www.163.com',
+    name: 'NetEase Games',
+    scraper: 'GreenhouseScraper',
+    slug: 'neteasegames',
+    homepage: 'https://www.neteasegames.com',
   },
   {
     name: 'Netflix',

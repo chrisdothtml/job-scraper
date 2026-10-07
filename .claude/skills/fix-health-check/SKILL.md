@@ -1,7 +1,23 @@
 ---
 name: fix-health-check
 description: Diagnose and fix failures or warnings from the daily "Scraper health" GitHub Actions workflow (scraper-health.yml). Uses the gh CLI to pull the run's results, then works out per company or scraper whether a board moved, a company vanished, a scraper broke, or the run just flaked, and fixes the seed data or scraper accordingly. Use for /fix-health-check, "the health check failed", or a pasted run URL/log.
+allowed-tools: Bash(gh run list:*), Bash(gh run view:*), Bash(sh .claude/skills/fix-health-check/latest-failure.sh), Bash(git log:*)
 ---
+
+## Latest results
+
+Recent runs:
+!`gh run list --workflow scraper-health.yml -L 5 --json createdAt,event,status,conclusion,url --jq '.[] | "\(.createdAt) \(.event) \(.status)/\(.conclusion) \(.url)"'`
+
+Failing and warning lines from the most recent failed run:
+!`sh .claude/skills/fix-health-check/latest-failure.sh`
+
+Local commits not yet pushed:
+!`git log --oneline origin/main..main`
+
+If these came back empty or with an error, `gh` may not be authenticated: ask the user to run `! gh auth login`, then fall back to Step 1. If the user named a specific run, use Step 1 for that run instead.
+
+## Background
 
 The `Scraper health` workflow (`.github/workflows/scraper-health.yml`) runs daily and on `workflow_dispatch`. It has two steps that each run even if the other fails:
 
@@ -13,28 +29,24 @@ The `Scraper health` workflow (`.github/workflows/scraper-health.yml`) runs dail
 
 A failure in the sweep usually means a **company's seed entry** is stale.
 
-The argument is optional: a run id or URL. Without one, use the latest run.
+The argument is optional: a run id or URL. Without one, use the **Latest results** above.
 
-Requires the `gh` CLI, authenticated for this repo (`gh auth status`). If it isn't, ask the user to run `! gh auth login`.
+Requires the `gh` CLI, authenticated for this repo.
 
-## Step 1: Pull the results
+## Step 1: Check the results are current
+
+The failed run above can be stale:
+
+- If a newer run in **Recent runs** succeeded, the failure is already fixed. Only its warnings still matter.
+- If a newer run failed, it is shown above, since the lines come from the most recent failure.
+- If the fix is in **Local commits not yet pushed**, the answer is "push".
+- Check each finding against the current `src/companies.seed.ts`, and against **Known warnings** at the bottom.
+
+For a specific run, or for warnings from a green run, grep that run's log the same way. Never read the whole log into context; it's long.
 
 ```sh
-gh run list --workflow scraper-health.yml -L 5
-RUN=<id>   # the latest run, or the one the user named
-gh run view $RUN --json conclusion,jobs --jq '{conclusion, failed: [.jobs[].steps[] | select(.conclusion=="failure") | .name]}'
+gh run view < id > --log | grep -E "FAIL |WARN |boards OK|\(fail\)|error:" | cut -c1-300
 ```
-
-Only failed steps show up in `--log-failed`. To also catch warnings from a green run, grep the full log:
-
-```sh
-gh run view $RUN --log > "$TMPDIR/health.log"
-grep -E "FAIL |WARN |boards OK|\(fail\)|error:" "$TMPDIR/health.log" | cut -c1-300
-```
-
-Never read the whole log into context; it's long.
-
-Before investigating anything, check the findings against the current seed. The run may predate a fix that's already on `main`, or the fix may be committed locally and not pushed. In that case `git log origin/main..main` shows it, and the answer is "push". Also check the **Known warnings** list at the bottom.
 
 ## Step 2: Triage each finding
 

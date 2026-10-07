@@ -7,7 +7,7 @@ on:
       - site/**
       - src/**
       - package.json
-      - yarn.lock
+      - bun.lock
       - .github/workflows/pages.yml
   workflow_dispatch:
 
@@ -24,25 +24,16 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
-        with:
-          # setup-node reads `volta.node` from package.json
-          node-version-file: package.json
+      # reads the version from `packageManager` in package.json
+      - uses: oven-sh/setup-bun@v2
 
-      # Node 25+ no longer bundles corepack, so install it explicitly
-      - name: Install corepack
-        run: |
-          npm install -g corepack@latest
-          corepack enable
-          yarn --version
+      - run: bun install --frozen-lockfile
+      - run: bun run site:build
 
-      - run: yarn install --immutable
-      - run: yarn site:build
-
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/configure-pages@v6
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: site-dist
 
@@ -57,4 +48,4 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5

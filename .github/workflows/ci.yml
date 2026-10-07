@@ -14,37 +14,28 @@ jobs:
   check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
-        with:
-          # setup-node reads `volta.node` from package.json
-          node-version-file: package.json
-
-      # Node 25+ no longer bundles corepack, so install it explicitly
-      - name: Install corepack
-        run: |
-          npm install -g corepack@latest
-          corepack enable
-          yarn --version
+      # reads the version from `packageManager` in package.json
+      - uses: oven-sh/setup-bun@v2
 
       - id: install
-        run: yarn install --immutable
+        run: bun install --frozen-lockfile
 
       # each check runs even if an earlier one failed, so one run reports all failures
       - name: Lint
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
-        run: yarn lint
+        run: bun run lint
       - name: Typecheck
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
-        run: yarn typecheck
+        run: bun run typecheck
       - name: Test
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
-        run: yarn test
+        run: bun run test
       # builds only validate that the latest code builds; outputs are discarded
       - name: Build
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
-        run: yarn build
+        run: bun run build
       - name: Build site
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
-        run: yarn site:build
+        run: bun run site:build

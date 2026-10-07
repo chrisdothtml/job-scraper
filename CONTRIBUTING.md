@@ -8,6 +8,13 @@
 
 Bun runs TypeScript modules directly, so there's no build step during development. To run a file (or `-e` snippet) against the sources rather than `dist`, pass the package's own resolve condition: `bun --conditions=job-scraper-source <file>`. Bun loads `.env` automatically.
 
+## Claude Code skills
+
+The repo ships two [Claude Code](https://claude.com/claude-code) skills in [.claude/skills](./.claude/skills):
+
+- [`/create-scraper`](./.claude/skills/create-scraper/SKILL.md): writes a new `Scraper` subclass, e.g. `/create-scraper https://explore.jobs.netflix.net/careers`. It first checks whether an existing scraper already covers the company (see [Adding a scraper](#adding-a-scraper)).
+- [`/fix-health-check`](./.claude/skills/fix-health-check/SKILL.md): diagnoses and fixes the daily [scraper health](#tests) run. It pulls the latest failed run with the [`gh` CLI](https://cli.github.com/) (which must be authenticated), then works out whether each failure is a company that moved boards, a broken scraper or a flake. It then updates the seed data or the scraper. Pass a run id or URL to target a specific run.
+
 ## Getting set up
 
 ```sh

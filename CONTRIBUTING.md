@@ -83,8 +83,19 @@ The docs are the [site](https://chrisdothtml.github.io/job-scraper/): `site/docs
 ```sh
 bun run lint-fix
 bun run typecheck
+bun run knip
 bun run test
 ```
+
+### knip
+
+Finds unused files, exports and dependencies with [knip](https://knip.dev), configured in `knip.json`.
+
+```
+Usage: bun run knip
+```
+
+Code that's only reached dynamically (the `#platform` targets, dev scripts, site snippets) is listed under `entry` in `knip.json`; add new dynamically loaded paths there rather than silencing them. To keep a specific unused export on purpose, tag it with a `/** @knipignore */` JSDoc comment. Everything exported from `src/index.ts` is public API and counts as used.
 
 ## Releasing
 

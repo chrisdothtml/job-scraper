@@ -1,14 +1,13 @@
 {
-  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "$schema": "https://unpkg.com/knip@6/schema.json",
   "entry": [
-    "src/index.ts",
+    "src/platform/{node,browser}.ts",
     "src/**/*.test.ts",
+    "src/scripts/*.ts",
     "site/main.ts",
-    "site/build.ts",
     "site/snippets/*.ts"
   ],
   "project": ["src/**/*.ts", "site/**/*.ts"],
-  "yarn": true,
   "ignoreExportsUsedInFile": true,
   "tags": ["-@knipignore"]
 }

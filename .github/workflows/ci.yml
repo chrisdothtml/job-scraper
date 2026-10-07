@@ -29,6 +29,9 @@ jobs:
       - name: Typecheck
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
         run: bun run typecheck
+      - name: Knip
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: bun run knip
       - name: Test
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
         run: bun run test

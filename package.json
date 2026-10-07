@@ -48,6 +48,7 @@
     "lint-fix": "prettier --write . | grep -v ' (unchanged)' || true",
     "test": "bun test --isolate --conditions=job-scraper-source",
     "typecheck": "tsc --noEmit && tsc --noEmit -p site",
+    "knip": "knip",
     "// build": "-----------------------------",
     "bake-version": "bun src/scripts/bakeVersion.ts",
     "build": "rm -rf dist && tsc -p tsconfig.build.json && bun run bake-version",
@@ -60,6 +61,7 @@
     "@types/bun": "^1.4.2",
     "@types/node": "^22.18.0",
     "esbuild": "^0.28.2",
+    "knip": "^6.40.0",
     "prettier": "^3.8.2",
     "prettier-plugin-sh": "^0.18.0",
     "typescript": "^7.0.2"

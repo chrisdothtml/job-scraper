@@ -31,10 +31,10 @@ These are its current counts for the job boards this package supports:
 ## Install
 
 ```sh
-yarn add @chrisdothtml/job-scraper
+npm i @chrisdothtml/job-scraper
 ```
 
-No runtime dependencies. Requires Node 22+, or a bundler for browsers (where only some boards are reachable).
+Or the equivalent for your package manager (`bun add`, `deno add npm:`, `yarn add`, `pnpm add`). No runtime dependencies. Requires Node 22+, Bun, Deno, or a bundler for browsers (where only some boards are reachable).
 
 ## Usage
 

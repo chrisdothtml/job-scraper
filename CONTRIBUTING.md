@@ -2,17 +2,17 @@
 
 ## Recommended tools
 
-- [Volta](https://volta.sh/): auto downloads/uses the node/yarn versions from the package.json `volta` field
-- [direnv](https://direnv.net/docs/installation.html#from-binary-builds): not required, but nice for putting [bin](./bin/) on your `PATH`
+- [Bun](https://bun.sh/): the package manager, script runner, test runner and TypeScript runner for development (version in the package.json `packageManager` field). The published package is plain JS built by `tsc`, so consumers don't need Bun
+- [direnv](https://direnv.net/docs/installation.html#from-binary-builds): not required, but nice for pointing `JOB_SCRAPER_DATA_DIR` at a repo-local `.data` dir (see [.envrc](./.envrc))
 - [vscode](https://code.visualstudio.com/): local tooling/formatting is already configured in this repo. Install the extensions from [.vscode/extensions.json](./.vscode/extensions.json)
 
-`./bin/tsn` is a drop-in for the `node` binary that runs TypeScript modules directly, so there's no build step during development.
+Bun runs TypeScript modules directly, so there's no build step during development. To run a file (or `-e` snippet) against the sources rather than `dist`, pass the package's own resolve condition: `bun --conditions=job-scraper-source <file>`. Bun loads `.env` automatically.
 
 ## Getting set up
 
 ```sh
-yarn install
-yarn typecheck
+bun install
+bun run typecheck
 ```
 
 ## Adding a scraper
@@ -50,7 +50,7 @@ You don't have to do this by hand for discoverable boards; looking the company u
 
 `search.ts` is optional and off unless `SERPAPI_KEY` is set. It's the only route to Workday tenants, whose slugs can't be derived from a company name.
 
-Its tests stub `globalThis.fetch` and point `JOB_SCRAPER_DATA_DIR` at a temp dir, so they live in their own file: `node:test` gives each file its own process, which keeps the stub from leaking into the live scraper tests. Keep it that way.
+Its tests stub `globalThis.fetch` and point `JOB_SCRAPER_DATA_DIR` at a temp dir, so they live in their own file: `bun run test` runs each file isolated (`--isolate`), which keeps the stub from leaking into the live scraper tests. Keep it that way.
 
 ## Caching
 
@@ -61,27 +61,29 @@ Users can retune or disable the cache via `configureCache`, so don't assume a re
 ## Tests
 
 ```sh
-yarn test
+bun run test
 ```
 
-Tests live in `src/__tests__/`. Anything that touches global state (stubbing `fetch`, overriding config, writing to the data dir) belongs in its own file: `node:test` gives each file its own process, which is what keeps a stub from leaking into the live scraper tests. Point `JOB_SCRAPER_DATA_DIR` at a temp dir in any test that writes.
+Tests live in `src/__tests__/`. Anything that touches global state (stubbing `fetch`, overriding config, writing to the data dir) belongs in its own file: `bun run test` passes `--isolate`, giving each file a fresh global object, module registry and `process.env`, which is what keeps a stub from leaking into the live scraper tests. Run the tests through `bun run test` rather than a bare `bun test`, which lacks that flag and the `job-scraper-source` condition (the preload refuses to run without them).
+
+[`preload.ts`](./src/__tests__/preload.ts) points `JOB_SCRAPER_DATA_DIR` at a fresh temp dir for every file. A test that inspects the data dir should still set its own before importing the package.
 
 The scraper tests hit live APIs, so they're slow and can fail for reasons that aren't your fault (a board changing shape, rate limiting). To test one company:
 
 ```sh
-TEST_COMPANIES="Airbnb, Canva" yarn test
+TEST_COMPANIES="Airbnb, Canva" bun run test
 ```
 
 ## Docs
 
-The docs are the [site](https://chrisdothtml.github.io/job-scraper/): `site/docs.html`, rendered into `site/index.html` at build time. Its code blocks are pulled from `site/snippets/` (by `// #region`), which are real modules, so `yarn typecheck` catches a doc example that's drifted from the API. Preview with `yarn site:dev`.
+The docs are the [site](https://chrisdothtml.github.io/job-scraper/): `site/docs.html`, rendered into `site/index.html` at build time. Its code blocks are pulled from `site/snippets/` (by `// #region`), which are real modules, so `bun run typecheck` catches a doc example that's drifted from the API. Preview with `bun run site:dev`.
 
 ## Before opening a PR
 
 ```sh
-yarn lint-fix
-yarn typecheck
-yarn test
+bun run lint-fix
+bun run typecheck
+bun run test
 ```
 
 ## Releasing

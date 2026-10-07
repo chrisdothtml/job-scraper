@@ -16,7 +16,7 @@ The argument is either:
 Before exploring anything, try the package's own resolution:
 
 ```sh
-./bin/tsn -e "
+bun --conditions=job-scraper-source -e "
   import { resolveCompany } from './src/index.ts';
   console.log(await resolveCompany('COMPANY_OR_URL'));
 "
@@ -183,14 +183,14 @@ If Steps 2–4 turn up no usable JSON API and the board can't be scraped via pla
 ## Step 8: Verify
 
 ```sh
-yarn typecheck
-TEST_COMPANIES="Company Name" yarn test
+bun run typecheck
+TEST_COMPANIES="Company Name" bun run test
 ```
 
 This exercises `getJob()`, not just `getJobContent()`: it'll fail if the individual job fetch is missing `title`/`location`/`url` (see the detail-response note above). Fix any failures before reporting done. If the scraper is `discoverable`, also confirm that resolution finds it cold:
 
 ```sh
-JOB_SCRAPER_DATA_DIR=/tmp/scraper-check ./bin/tsn -e "
+JOB_SCRAPER_DATA_DIR=/tmp/scraper-check bun --conditions=job-scraper-source -e "
   import { resolveCompany } from './src/index.ts';
   console.log(await resolveCompany('Company Name'));
 "

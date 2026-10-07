@@ -17,7 +17,7 @@ const dev = process.argv.includes('--dev');
  * Reads the code for a `<pre data-snippet="file#region">`: the lines of
  * `snippets/<file>.ts` inside every `// #region` naming `region` (or the whole
  * file, when there's no region), minus the markers themselves. The snippets
- * are real modules, so `yarn typecheck` keeps them honest against `src/`.
+ * are real modules, so `bun run typecheck` keeps them honest against `src/`.
  */
 async function readSnippet(file: string, region?: string): Promise<string> {
   const source = await readFile(

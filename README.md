@@ -1,4 +1,15 @@
-# job-scraper
+<div align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset=".github/assets/banner-dark.svg">
+    <img alt="job-scraper — List jobs for 15k+ companies, for free" src=".github/assets/banner-light.svg" width="100%">
+  </picture>
+  <p>
+    <a href="https://www.npmjs.com/package/@chrisdothtml/job-scraper"><img alt="npm version" src="https://img.shields.io/npm/v/@chrisdothtml/job-scraper"></a>
+    <a href="https://github.com/chrisdothtml/job-scraper/actions/workflows/scraper-health.yml"><img alt="Scraper health" src="https://github.com/chrisdothtml/job-scraper/actions/workflows/scraper-health.yml/badge.svg"></a>
+    <a href="./LICENSE"><img alt="License" src="https://img.shields.io/npm/l/@chrisdothtml/job-scraper"></a>
+  </p>
+  <p><a href="https://chrisdothtml.github.io/job-scraper/">Live demo</a> · <a href="https://chrisdothtml.github.io/job-scraper/#docs">Docs</a> · <a href="https://www.npmjs.com/package/@chrisdothtml/job-scraper">npm</a></p>
+</div>
 
 > List jobs for 15k+ companies for free. Runs locally; no headless browsers or API tokens.
 

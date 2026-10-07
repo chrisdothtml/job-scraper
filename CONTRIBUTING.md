@@ -74,6 +74,8 @@ The scraper tests hit live APIs, so they're slow and can fail for reasons that a
 TEST_COMPANIES="Airbnb, Canva" bun run test
 ```
 
+A daily workflow (`.github/workflows/scraper-health.yml`) runs these live scraper tests plus `bun run check-boards`, which sweeps every seeded company's board and lists any that throw or serve no real jobs. You can run it locally too; it hits every live board, so expect it to take a while. Failures show up as a red run with a job summary.
+
 ## Docs
 
 The docs are the [site](https://chrisdothtml.github.io/job-scraper/): `site/docs.html`, rendered into `site/index.html` at build time. Its code blocks are pulled from `site/snippets/` (by `// #region`), which are real modules, so `bun run typecheck` catches a doc example that's drifted from the API. Preview with `bun run site:dev`.

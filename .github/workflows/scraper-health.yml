@@ -1,0 +1,35 @@
+# Daily live check of the scrapers against real job boards. Failures surface
+# as a red run, with the failing boards listed in the job summary.
+name: Scraper health
+
+on:
+  schedule:
+    - cron: '23 9 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: scraper-health
+  cancel-in-progress: false
+
+jobs:
+  health:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      # reads the version from `packageManager` in package.json
+      - uses: oven-sh/setup-bun@v2
+
+      - id: install
+        run: bun install --frozen-lockfile
+
+      # both checks run even if the first fails, so one run reports everything
+      - name: Scraper deep check
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: bun run test src/__tests__/scrapers.test.ts -t 'Ensure Scrapers work'
+      - name: Board sweep
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: bun run check-boards

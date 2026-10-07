@@ -33,11 +33,29 @@ const TEST_COMPANIES = [
   'Shopify',
   'Snowflake',
   'Spotify',
+  'Uber',
   'Autodesk',
   'Google',
   'NVIDIA',
 ];
 const LIVE_TIMEOUT = 60_000;
+
+test('the default test companies cover every scraper', () => {
+  const covered = new Set(
+    TEST_COMPANIES.map(
+      (name) =>
+        seedCompanies.find(
+          (c) => normalizeCompanyName(c.name) === normalizeCompanyName(name)
+        )?.scraper
+    )
+  );
+  const missing = scraperNames.filter((name) => !covered.has(name));
+  assert.deepEqual(
+    missing,
+    [],
+    `TEST_COMPANIES has no company for: ${missing.join(', ')}`
+  );
+});
 
 test('every seeded company names a real scraper', () => {
   for (const company of seedCompanies) {

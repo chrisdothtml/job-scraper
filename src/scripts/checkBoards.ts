@@ -27,12 +27,19 @@ type Seed = (typeof seedCompanies)[number];
 type Finding = Seed & { problem: string };
 type Result = { failure?: Finding; warning?: Finding };
 
+const NON_ARRAY = 'Returned non-array';
+
 async function countRealJobs(company: Seed) {
   using scraper = new (getScraper(company.scraper))(company.slug);
-  const jobs = await scraper.getJobsList(true);
-  return Array.isArray(jobs)
-    ? jobs.filter((job) => !isPlaceholderJob(job)).length
-    : 0;
+  // the testing list can be a truncated sample (e.g. a first page of
+  // placeholders), so only an empty full list counts as no jobs
+  for (const testing of [true, false]) {
+    const jobs = await scraper.getJobsList(testing);
+    if (!Array.isArray(jobs)) throw new Error(NON_ARRAY);
+    const count = jobs.filter((job) => !isPlaceholderJob(job)).length;
+    if (count > 0) return count;
+  }
+  return 0;
 }
 
 async function check(company: Seed): Promise<Result> {
@@ -46,7 +53,8 @@ async function check(company: Seed): Promise<Result> {
     }
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    return { failure: { ...company, problem: `Threw: ${message}` } };
+    const problem = message === NON_ARRAY ? message : `Threw: ${message}`;
+    return { failure: { ...company, problem } };
   }
   return count > 0
     ? {}

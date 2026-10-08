@@ -24,6 +24,9 @@ bun run typecheck
 
 ## Adding a scraper
 
+See the [source architecture map](./src/README.md) for module ownership and
+the [site map](./site/README.md) for documentation-site ownership.
+
 Run the [`create-scraper`](./.claude/skills/create-scraper/SKILL.md) skill with a careers page URL. It explores the page with a browser, finds the JSON API behind it, and writes the subclass.
 
 Prefer a scraper for the **board** over one for a single company: a board scraper serves everyone on it.
@@ -32,7 +35,7 @@ If your board only exposes full postings through its list endpoint, keep a `Map`
 
 ## Adding a company
 
-If an existing scraper covers it, add an entry to `src/companies.seed.ts`:
+If an existing scraper covers it, add an entry to `src/companies/seed.ts`:
 
 ```ts
 { name: 'Acme', scraper: 'GreenhouseScraper', slug: 'acme' },
@@ -71,9 +74,9 @@ Users can retune or disable the cache via `configureCache`, so don't assume a re
 bun run test
 ```
 
-Tests live in `src/__tests__/`. Anything that touches global state (stubbing `fetch`, overriding config, writing to the data dir) belongs in its own file: `bun run test` passes `--isolate`, giving each file a fresh global object, module registry and `process.env`, which is what keeps a stub from leaking into the live scraper tests. Run the tests through `bun run test` rather than a bare `bun test`, which lacks that flag and the `job-scraper-source` condition (the preload refuses to run without them).
+Tests live beside their owning module in `<module-dir>/__tests__/<module-name>.test.ts` (or `.test.tsx`), for example `src/companies/__tests__/registry.test.ts` and `src/cli/__tests__/runCli.test.ts`. Anything that touches global state (stubbing `fetch`, overriding config, writing to the data dir) belongs in its own file: `bun run test` passes `--isolate`, giving each file a fresh global object, module registry and `process.env`, which is what keeps a stub from leaking into the live scraper tests. Run the tests through `bun run test` rather than a bare `bun test`, which lacks that flag and the `job-scraper-source` condition (the preload refuses to run without them).
 
-[`preload.ts`](./src/__tests__/preload.ts) points `JOB_SCRAPER_DATA_DIR` at a fresh temp dir for every file. A test that inspects the data dir should still set its own before importing the package.
+The root [`src/__tests__/preload.ts`](./src/__tests__/preload.ts) remains shared setup: it points `JOB_SCRAPER_DATA_DIR` at a fresh temp dir for every file. A test that inspects the data dir should still set its own before importing the package. Nested test files and helpers are excluded from the published build; the source resolution condition lets Bun tests and development scripts load `src/` instead of `dist/`.
 
 The scraper tests hit live APIs, so they're slow and can fail for reasons that aren't your fault (a board changing shape, rate limiting). To test one company:
 
@@ -119,3 +122,5 @@ One-time setup: on npmjs.com, add a trusted publisher for the package pointing a
 ## Dependencies
 
 This package ships with zero runtime dependencies, and that's deliberate: it's a thin wrapper over `fetch`. If something genuinely needs a dependency (a DOM-scraping fallback needing Playwright, say), raise it before writing the code.
+
+Keep utilities next to their owning feature when they only serve that feature; use `src/utils/misc.ts` for small general helpers. Import implementation modules by their source path so ownership stays clear. `src/index.ts` is the deliberate public export facade and `src/scrapers/index.ts` is the deliberate scraper registry; avoid adding internal barrels elsewhere.

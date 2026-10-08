@@ -1,5 +1,5 @@
 import { cachedFetch } from '../cache.ts';
-import { time } from '../utils/misc.ts';
+import { time } from '../utils.ts';
 import { Scraper, type ListedJob, type ParsedUrl } from './Scraper.ts';
 
 interface SmartRecruitersLocation {

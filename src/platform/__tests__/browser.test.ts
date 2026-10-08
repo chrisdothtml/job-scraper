@@ -71,7 +71,7 @@ const { createScraper, resolveCompany, UnresolvedCompanyError } =
 const { canSearch, getSearchConfig } =
   await import('../../discovery/search.ts');
 const { seedCompanies } = await import('../../companies/seed.ts');
-const { time } = await import('../../utils/misc.ts');
+const { time } = await import('../../utils.ts');
 
 const realFetch = globalThis.fetch;
 

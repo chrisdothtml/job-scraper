@@ -6,7 +6,7 @@ import {
 } from '../companies/registry.ts';
 import { scraperNames, scrapers, type ScraperName } from '../scrapers/index.ts';
 import { type ParsedUrl } from '../scrapers/Scraper.ts';
-import { applyOverrides, time } from '../utils/misc.ts';
+import { applyOverrides, time } from '../utils.ts';
 
 export interface SearchConfig {
   /**

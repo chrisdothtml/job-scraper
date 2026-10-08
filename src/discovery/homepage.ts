@@ -8,15 +8,15 @@ import {
   type Company,
 } from '../companies/registry.ts';
 import { pkgVersion } from '../constants.ts';
-import { resolveCompany } from './resolve.ts';
 import { scrapers } from '../scrapers/index.ts';
+import { time } from '../utils.ts';
+import { resolveCompany } from './resolve.ts';
 import { canSearch, getSearchConfig, searchForHomepage } from './search.ts';
 import {
   BROWSER_USER_AGENT,
   findBoardsInPage,
   findNamesInPage,
 } from './sniff.ts';
-import { time } from '../utils/misc.ts';
 
 export interface HomepageOptions {
   /**

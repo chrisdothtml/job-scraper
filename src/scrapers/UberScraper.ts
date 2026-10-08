@@ -1,5 +1,5 @@
 import { cachedFetch } from '../cache.ts';
-import { time } from '../utils/misc.ts';
+import { time } from '../utils.ts';
 import {
   JobNotFoundError,
   Scraper,

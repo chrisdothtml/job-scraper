@@ -13,7 +13,7 @@ delete process.env.JOB_SCRAPER_CACHE_TTL;
 
 const { cachedFetch, clearCache, configureCache, CorsError, getCacheConfig } =
   await import('../cache.ts');
-const { time } = await import('../utils/misc.ts');
+const { time } = await import('../utils.ts');
 
 const realFetch = globalThis.fetch;
 

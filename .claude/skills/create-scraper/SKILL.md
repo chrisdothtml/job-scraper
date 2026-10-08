@@ -105,7 +105,7 @@ Write `src/scrapers/{Name}Scraper.ts`. Every scraper must implement `getJobsList
 
 ```typescript
 import { cachedFetch } from '../cache.ts';
-import { time } from '../utils/misc.ts';
+import { time } from '../utils.ts';
 import { Scraper, type ListedJob, type ParsedUrl } from './Scraper.ts';
 
 export default class {Name}Scraper extends Scraper {

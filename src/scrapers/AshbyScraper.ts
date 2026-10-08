@@ -1,5 +1,5 @@
 import { cachedFetch, HttpError } from '../cache.ts';
-import { time } from '../utils/misc.ts';
+import { time } from '../utils.ts';
 import {
   BoardShapeError,
   JobNotFoundError,

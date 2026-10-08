@@ -123,4 +123,4 @@ One-time setup: on npmjs.com, add a trusted publisher for the package pointing a
 
 This package ships with zero runtime dependencies, and that's deliberate: it's a thin wrapper over `fetch`. If something genuinely needs a dependency (a DOM-scraping fallback needing Playwright, say), raise it before writing the code.
 
-Keep utilities next to their owning feature when they only serve that feature; use `src/utils/misc.ts` for small general helpers. Import implementation modules by their source path so ownership stays clear. `src/index.ts` is the deliberate public export facade and `src/scrapers/index.ts` is the deliberate scraper registry; avoid adding internal barrels elsewhere.
+Keep utilities next to their owning feature when they only serve that feature; use `src/utils.ts` for small general helpers. Import implementation modules by their source path so ownership stays clear. `src/index.ts` is the deliberate public export facade and `src/scrapers/index.ts` is the deliberate scraper registry; avoid adding internal barrels elsewhere.

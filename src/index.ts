@@ -6,7 +6,6 @@ export {
   HttpError,
   type CacheConfig,
 } from './cache.ts';
-export { seedCompanies } from './companies/seed.ts';
 export {
   addCompanyDomain,
   clearCompaniesCache,
@@ -24,6 +23,7 @@ export {
   type HomepageMiss,
   type StoredCompany,
 } from './companies/registry.ts';
+export { seedCompanies } from './companies/seed.ts';
 export {
   findHomepage,
   resolveHomepage,
@@ -31,7 +31,6 @@ export {
   type HomepageOptions,
   type HomepageSource,
 } from './discovery/homepage.ts';
-export { cacheDir, companiesFile, dataDir } from './paths.ts';
 export {
   boardHints,
   companyNameCandidates,
@@ -46,20 +45,6 @@ export {
   type ResolvedCompany,
   type ResolvedJob,
 } from './discovery/resolve.ts';
-export {
-  discoverableScrapers,
-  getScraper,
-  isScraperName,
-  Scraper,
-  scraperNames,
-  scrapers,
-  type Job,
-  type ListedJob,
-  type ParsedUrl,
-  type ScraperName,
-  type ScraperSubclass,
-} from './scrapers/index.ts';
-export { JobNotFoundError } from './scrapers/Scraper.ts';
 export {
   canSearch,
   clearSearchCache,
@@ -80,9 +65,24 @@ export {
   type SniffedBoard,
   type SniffedPage,
 } from './discovery/sniff.ts';
-export { time } from './utils/misc.ts';
+export { cacheDir, companiesFile, dataDir } from './paths.ts';
+export {
+  discoverableScrapers,
+  getScraper,
+  isScraperName,
+  Scraper,
+  scraperNames,
+  scrapers,
+  type Job,
+  type ListedJob,
+  type ParsedUrl,
+  type ScraperName,
+  type ScraperSubclass,
+} from './scrapers/index.ts';
+export { JobNotFoundError } from './scrapers/Scraper.ts';
+export { time } from './utils.ts';
 
-export { listCompanyJobs, fetchJob, type FetchJobInput } from './jobs.ts';
+export { fetchJob, listCompanyJobs, type FetchJobInput } from './jobs.ts';
 
 export {
   renderScrapedPosting,

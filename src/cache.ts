@@ -1,6 +1,6 @@
 import { platform } from '#platform';
 import { cacheDir as defaultCacheDir } from './paths.ts';
-import { applyOverrides, time } from './utils/misc.ts';
+import { applyOverrides, time } from './utils.ts';
 
 function serializeArgs(args: Parameters<Fetch>): string {
   const [url, init] = args;

@@ -1,0 +1,429 @@
+/* Every custom demo rule is scoped so Starlight navigation, tabs and code
+   keep their own styles. Theme tokens follow Starlight's explicit toggle. */
+.job-demo {
+  --bg: var(--sl-color-bg);
+  --fg: var(--sl-color-text);
+  --muted: var(--sl-color-gray-3);
+  --border: var(--sl-color-gray-5);
+  --surface: var(--sl-color-gray-6);
+  --accent: var(--sl-color-text-accent);
+  --mono: var(--sl-font-mono);
+  --radius: 6px;
+  margin-block: 1.5rem;
+  color: var(--fg);
+
+  * {
+    box-sizing: border-box;
+  }
+  [hidden] {
+    display: none !important;
+  }
+  button {
+    font: inherit;
+    cursor: pointer;
+  }
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .demo {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface);
+  }
+  .modes {
+    margin: 0;
+    padding: 10px;
+    border: 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .segmented {
+    display: flex;
+    gap: 4px;
+  }
+  .segmented label {
+    position: relative;
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 12px;
+    border-radius: var(--radius);
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .segmented input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+  .segmented label:has(:checked) {
+    background: var(--fg);
+    color: var(--bg);
+  }
+  .segmented label:has(:focus-visible) {
+    outline: 2px solid var(--accent);
+  }
+  .demo-body {
+    padding: 20px;
+  }
+  .query {
+    display: flex;
+    gap: 8px;
+  }
+  .query input {
+    flex: 1;
+    min-width: 0;
+    height: 48px;
+    padding: 0 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg);
+    color: var(--fg);
+    font: 14px var(--mono);
+  }
+  .query button {
+    height: 48px;
+    padding: 0 18px;
+    border: 0;
+    border-radius: var(--radius);
+    background: var(--fg);
+    color: var(--bg);
+    font-weight: 600;
+  }
+  .query button:disabled {
+    opacity: 0.6;
+    cursor: progress;
+  }
+  .examples {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-top: 14px;
+    color: var(--muted);
+    font-size: 13px;
+  }
+  .examples ul {
+    display: contents;
+    list-style: none;
+  }
+  .chip {
+    min-height: 44px;
+    padding: 0 12px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--bg);
+    color: var(--fg);
+    font-size: 13px;
+  }
+  .chip:hover {
+    border-color: var(--accent);
+  }
+  .in-code {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    padding-top: 16px;
+    border-top: 1px dashed var(--border);
+    overflow-x: auto;
+    white-space: pre;
+    font-size: 13px;
+  }
+  .in-code > span {
+    color: var(--muted);
+    font-size: 12px;
+  }
+  .in-code code {
+    background: none;
+    padding: 0;
+  }
+  .result {
+    margin-top: 20px;
+  }
+  .result:empty {
+    display: none;
+  }
+  .status,
+  .elapsed {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--muted);
+    font-size: 14px;
+  }
+  .elapsed {
+    margin-top: 10px;
+    font-size: 13px;
+  }
+  .spinner {
+    width: 14px;
+    height: 14px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: demo-spin 0.8s linear infinite;
+  }
+  .count {
+    font-weight: 600;
+  }
+  .jobs {
+    max-height: 21rem;
+    margin: 0;
+    padding: 0;
+    overflow-y: auto;
+    list-style: none;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg);
+  }
+  .jobs li {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 20px;
+    padding: 11px 16px;
+  }
+  .jobs li + li {
+    border-top: 1px solid var(--border);
+  }
+  .jobs a,
+  .job-title a {
+    color: var(--fg);
+    font-weight: 500;
+  }
+  .location {
+    max-width: 40%;
+    color: var(--muted);
+    font-size: 14px;
+    text-align: right;
+  }
+  .job-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 4px 16px;
+  }
+  .job-title {
+    font-size: 18px;
+  }
+  .description {
+    max-height: 22.5rem;
+    overflow-y: auto;
+    overflow-wrap: anywhere;
+    padding: 4px 22px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg);
+    font-size: 15px;
+  }
+  .description :is(h1, h2, h3, h4, h5, h6) {
+    margin: 18px 0 6px;
+    font-size: 15px;
+    font-weight: 600;
+  }
+  .description :is(p, ul, ol) {
+    margin: 0 0 10px;
+  }
+  .description p:empty {
+    display: none;
+  }
+  .content {
+    max-height: 15rem;
+    padding: 14px 16px;
+    overflow: auto;
+    background: var(--bg);
+    font: 12px/1.6 var(--mono);
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+  .raw {
+    margin-top: 10px;
+  }
+  .raw > summary {
+    cursor: pointer;
+    min-height: 44px;
+    color: var(--muted);
+  }
+  .notice {
+    padding: 16px 18px;
+    border: 1px solid var(--accent);
+    border-radius: var(--radius);
+  }
+  .notice-title {
+    font-weight: 600;
+  }
+  .notice p {
+    margin-bottom: 12px;
+  }
+  .error {
+    color: var(--sl-color-red-high);
+  }
+  .fineprint {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    color: var(--muted);
+    font-size: 14px;
+  }
+  .link {
+    border: 0;
+    padding: 0;
+    background: none;
+    color: var(--accent);
+    text-decoration: underline;
+  }
+  .code-block {
+    position: relative;
+    margin-block: 1rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg);
+  }
+  .code-block pre {
+    max-height: 22.5rem;
+    margin: 0;
+    padding: 16px;
+    overflow: auto;
+    font: 13px/1.7 var(--mono);
+  }
+  .code-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .code-lang {
+    color: var(--muted);
+    font-size: 12px;
+  }
+  .copy {
+    min-height: 36px;
+    padding: 0 10px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg);
+    color: var(--fg);
+    font-size: 12px;
+  }
+  [role='tablist'] {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 10px;
+    overflow-x: auto;
+    border-bottom: 1px solid var(--border);
+  }
+  [role='tab'] {
+    min-height: 44px;
+    padding: 0 12px;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    background: none;
+    color: var(--muted);
+  }
+  [role='tab'][aria-selected='true'] {
+    border-bottom-color: var(--accent);
+    color: var(--fg);
+  }
+  .tok-keyword,
+  .tok-fn {
+    color: var(--accent);
+  }
+  .tok-string {
+    color: var(--sl-color-green-high);
+  }
+  .tok-number {
+    color: var(--sl-color-orange-high);
+  }
+  .tok-comment {
+    color: var(--muted);
+    font-style: italic;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .spinner {
+      animation: none;
+    }
+  }
+  @media (max-width: 640px) {
+    .segmented {
+      flex-direction: column;
+    }
+    .demo-body {
+      padding: 14px;
+    }
+    .query button {
+      padding: 0 12px;
+    }
+    .jobs li {
+      flex-direction: column;
+      gap: 2px;
+    }
+    .location {
+      max-width: none;
+      text-align: left;
+    }
+  }
+}
+@keyframes demo-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Astro Code snippets share Starlight's explicit light/dark selection. */
+.checked-snippet {
+  position: relative;
+  margin-block: 1rem;
+}
+.checked-snippet .astro-code {
+  padding: 1rem;
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 6px;
+  overflow-x: auto;
+  font-size: 0.85rem;
+}
+.checked-snippet :is(.astro-code, .astro-code span) {
+  color: var(--shiki-light);
+  background-color: var(--shiki-light-bg, transparent);
+}
+[data-theme='dark'] .checked-snippet :is(.astro-code, .astro-code span) {
+  color: var(--shiki-dark);
+  background-color: var(--shiki-dark-bg, transparent);
+}
+.checked-snippet button {
+  position: absolute;
+  top: 0.25rem;
+  right: 0.25rem;
+  min-height: 44px;
+  padding-inline: 0.75rem;
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 4px;
+  background: var(--sl-color-bg);
+  color: var(--sl-color-text);
+  cursor: pointer;
+}
+.checked-snippet button[hidden] {
+  display: none;
+}
+@media (hover: hover) {
+  .checked-snippet button {
+    opacity: 0;
+  }
+  .checked-snippet:is(:hover, :focus-within) button {
+    opacity: 1;
+  }
+}

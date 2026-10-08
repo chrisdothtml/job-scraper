@@ -1,0 +1,31 @@
+---
+title: job-scraper
+description: List jobs for thousands of companies with HTTP-only scrapers and automatic board discovery.
+---
+
+import LiveDemo from '../../components/LiveDemo.astro';
+import Snippet from '../../components/Snippet.astro';
+
+List jobs for **15k+ companies**, for free. Give the package a company name, careers URL, or job URL, and it works out which board to ask. No headless browser or API token is required for supported boards.
+
+## Try it live
+
+This demo runs the package in your browser. Some boards block browser requests through CORS; the demo provides a local Node command when that happens. See the [browser guide](/job-scraper/guides/browser/) for runtime limitations.
+
+<LiveDemo />
+
+## Install
+
+```sh
+npm install @chrisdothtml/job-scraper
+```
+
+Zero runtime dependencies. Plain ESM for Node.js 22+, Bun, Deno, and browsers. Optional web search uses your own SerpApi key.
+
+## Quick start
+
+<Snippet file="api" region="list-name" />
+
+<Snippet file="api" region="job-url" />
+
+Use [renderScrapedPosting](/job-scraper/reference/#renderScrapedPosting) to turn a fetched posting into readable Markdown. Browse the [API reference](/job-scraper/reference/) for every public function, class, and type, or the [guides](/job-scraper/guides/) for recipes and configuration.

@@ -1,0 +1,50 @@
+---
+title: Enable optional web search
+---
+
+import Snippet from '../../../components/Snippet.astro';
+
+Slug guessing cannot derive every board identity: a Workday slug such as `autodesk.wd1.Ext` contains tenant, pod and site. Configure a SerpApi key to allow [searchForBoards](/job-scraper/reference/#searchForBoards) and resolution’s fallback search.
+
+<Snippet file="search" region="config" />
+
+## Settings and defaults
+
+[configureSearch](/job-scraper/reference/#configureSearch) merges partial overrides. `undefined` removes an override; [getSearchConfig](/job-scraper/reference/#getSearchConfig) shows effective settings.
+
+| Option        | Default                            | Purpose                                          |
+| ------------- | ---------------------------------- | ------------------------------------------------ |
+| `apiKey`      | Node environment, otherwise `null` | No search without a key                          |
+| `limit`       | `250`                              | Searches allowed per period                      |
+| `period`      | `'month'`                          | `'day'` or `'month'` quota window                |
+| `resultCount` | `10`                               | Results requested for an individual search       |
+| `resultTtl`   | 30 days in milliseconds            | Reuse remembered board results, including misses |
+| `batchSize`   | `5`                                | Companies per batched query                      |
+| `homepages`   | `false`                            | Enable homepage search by default                |
+
+Node can supply:
+
+```sh
+SERP_API_TOKEN=... # alternatively SERPAPI_KEY or SERPAPI_API_KEY
+SERPAPI_SEARCH_LIMIT=100
+SERPAPI_SEARCH_PERIOD=month
+SERPAPI_HOMEPAGE_SEARCH=1
+```
+
+Browsers have no environment-variable fallback. Choose quota settings from your own provider plan; the package defaults are not a promise of provider allowance.
+
+## Control cost
+
+Usage is persisted in `search-usage.json` and resets when the UTC day/month rolls over. A query is counted **before** its response arrives: a failed request can still consume provider quota. Once the limit is reached, new queries stop and resolution relies on earlier steps. [canSearch](/job-scraper/reference/#canSearch) reports key/quota availability.
+
+Remembered board results live in `search-results.json`, including fruitless searches. Equivalent concurrent work shares an in-flight request. [searchForBoardsBatch](/job-scraper/reference/#searchForBoardsBatch) skips remembered companies, ORs up to `batchSize` names into each query, asks for up to 100 results, and attributes matching slugs back to names:
+
+<Snippet file="search" region="batch" />
+
+A result is a candidate, not proof. Resolution checks both a plausible company-name slug match and the same `minJobs` activity threshold as guessing before registration. A stale or unrelated search hit must not become a permanently failing registry record.
+
+## Disable search for one lookup
+
+<Snippet file="search-off" />
+
+[clearSearchCache](/job-scraper/reference/#clearSearchCache) clears remembered board results, **not quota usage**. [searchForHomepage](/job-scraper/reference/#searchForHomepage) returns unverified website candidates; use [resolveHomepage](/job-scraper/reference/#resolveHomepage) for checked, remembered homepage results.

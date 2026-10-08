@@ -12,7 +12,7 @@ import {
   type ListedJob,
 } from '../src/index.ts';
 import { descriptionHtml } from './description.ts';
-import { addCopyButton, enhanceDocs, enhanceTabs } from './docs.ts';
+import { addCopyButton, enhanceTabs } from './docs.ts';
 import { highlightTs } from './highlight.ts';
 import { sanitizeHtml } from './sanitize.ts';
 
@@ -413,4 +413,3 @@ function renderError(error: unknown, call: NodeCall): Node {
 
 showPlaceholder();
 renderExamples();
-enhanceDocs();

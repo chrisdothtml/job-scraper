@@ -1,0 +1,28 @@
+---
+title: Choose cache freshness
+---
+
+import Snippet from '../../../components/Snippet.astro';
+
+Board requests are cached by serialized request arguments (URL and request options, including body/headers). Caching is on by default; a typical scraper TTL is one day. Choose freshness for your task: an alerting diff needs a fresh list, while interactive browsing can reuse a short-lived response.
+
+<Snippet file="reference" region="cache-config" />
+
+## Effective settings
+
+[CacheConfig](/job-scraper/reference/#CacheConfig) contains `enabled` (true), `ttl` (null) and `dir` (default cache location). `ttl` is milliseconds; `null` keeps the scraper’s TTL. [configureCache](/job-scraper/reference/#configureCache) merges overrides and `undefined` removes an override. [getCacheConfig](/job-scraper/reference/#getCacheConfig) returns the effective policy.
+
+Precedence is explicit override → Node environment → default. Node supports:
+
+```sh
+JOB_SCRAPER_CACHE=off
+JOB_SCRAPER_CACHE_TTL=3600000
+```
+
+Global `enabled` can turn caching off, but cannot force it back on for a call that opted out, such as a discovery probe. Failed responses are never cached: a 404 body must not be mistaken later for valid posting content.
+
+## Clear or relocate responses
+
+[clearCache](/job-scraper/reference/#clearCache) removes cached responses from the configured directory/name and returns the number removed. Registry and search caches have separate clearing APIs. `dir` is a filesystem location under Node and a Cache API cache name in browsers. Browser responses use the same TTL policy; where the Cache API is unavailable, requests are not cached.
+
+For checking closures, use the [still-open recipe](/job-scraper/guides/recipes/#check-whether-a-saved-posting-is-still-open) and distinguish missing jobs from failed requests.

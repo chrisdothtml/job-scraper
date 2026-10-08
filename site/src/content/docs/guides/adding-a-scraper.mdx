@@ -1,0 +1,9 @@
+---
+title: Add a scraper
+---
+
+Follow [CONTRIBUTING.md](https://github.com/chrisdothtml/job-scraper/blob/main/CONTRIBUTING.md) and the repository’s [create-scraper skill](https://github.com/chrisdothtml/job-scraper/blob/main/.claude/skills/create-scraper/SKILL.md). That workflow inspects the board in a browser, finds its underlying JSON API and implements a subclass.
+
+The public [Scraper](/job-scraper/reference/#Scraper) contract includes listing/full-content methods, URL parsing and optional discovery capabilities. Declare whether slugs can be derived from names; Workday-style identities should not be probed as guessed names. Keep company-owned domains distinct from shared board hosts.
+
+Use Bun for development, `bun run test` for the isolated source-condition test runner, and source execution with `bun --conditions=job-scraper-source <file>`. Published code must remain plain ESM compatible with Node 22+, Bun, Deno and browsers; Bun-only APIs belong in tests/dev scripts.

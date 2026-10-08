@@ -1,0 +1,33 @@
+---
+title: Choose a supported board
+---
+
+import Snippet from '../../../components/Snippet.astro';
+
+Constructors are properties of [scrapers](/job-scraper/reference/#scrapers); their names form [ScraperName](/job-scraper/reference/#ScraperName). **Discoverable** means name-derived slug probing works. Other boards can still resolve through recognized URLs, known registry records or explicit board identity; search can locate non-derivable multi-tenant slugs.
+
+| Scraper                  | Discoverable | Browser CORS | Notes                                      |
+| ------------------------ | ------------ | ------------ | ------------------------------------------ |
+| `GreenhouseScraper`      | Yes          | Yes          | Embedded boards and `gh_jid` hints         |
+| `AshbyScraper`           | Yes          | Yes          |                                            |
+| `LeverScraper`           | Yes          | Yes          |                                            |
+| `WorkableScraper`        | Yes          | No           |                                            |
+| `SmartRecruitersScraper` | Yes          | Yes          | PascalCase slugs                           |
+| `RipplingScraper`        | Yes          | Yes          |                                            |
+| `WorkdayScraper`         | No           | No           | `tenant.pod.site`, e.g. `autodesk.wd1.Ext` |
+| `GitHubScraper`          | No           | No           | iCIMS-backed, single-company scraper       |
+| `GoogleScraper`          | No           | No           | Single-company scraper                     |
+| `NetflixScraper`         | No           | No           | Single-company scraper                     |
+| `NvidiaScraper`          | No           | No           | Eightfold-backed, single-company scraper   |
+| `ShopifyScraper`         | No           | No           | Single-company scraper                     |
+| `UberScraper`            | No           | No           | Oracle Fusion Recruiting Cloud-backed      |
+
+Browser support depends on the board’s current cross-origin policy. Node does not enforce browser CORS. See [browser fallback](/job-scraper/guides/browser/).
+
+## Reuse a scraper for bulk work
+
+High-level wrappers create/dispose an instance per call. Some boards serve full content through listing endpoints; reuse an instance to share that in-memory cache:
+
+<Snippet file="reference" region="bulk" />
+
+The snippet uses `using`, requiring a runtime with `Symbol.dispose`. Otherwise use `try/finally` and call `scraper.dispose()`. [getScraper](/job-scraper/reference/#getScraper) returns a constructor for a dynamic name; [isScraperName](/job-scraper/reference/#isScraperName) validates it first. Methods and static parsing/discovery capabilities are documented under [Scraper](/job-scraper/reference/#Scraper).

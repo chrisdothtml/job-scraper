@@ -4,10 +4,12 @@
   "extends": "../tsconfig.json",
   "compilerOptions": {
     "rootDir": "..",
+    "declaration": false,
+    "declarationMap": false,
     "lib": ["esnext", "dom", "dom.iterable"],
     // the docs' snippets import the package by name, as readers would
     "paths": { "@chrisdothtml/job-scraper": ["../src/index.ts"] }
   },
-  "include": ["./**/*"],
+  "include": ["./**/*.ts", "./**/*.astro", "./.astro/types.d.ts"],
   "exclude": []
 }

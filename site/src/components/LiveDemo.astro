@@ -1,0 +1,53 @@
+<div class="job-demo not-content">
+  <form id="demo" class="demo" autocomplete="off">
+    <fieldset class="modes">
+      <legend class="visually-hidden">What to fetch</legend>
+      <div class="segmented">
+        <label>
+          <input type="radio" name="mode" value="company" checked />
+          Fetch all company jobs
+        </label>
+        <label>
+          <input type="radio" name="mode" value="job" />
+          Fetch a job posting
+        </label>
+      </div>
+    </fieldset>
+    <div class="demo-body">
+      <div class="query">
+        <label for="demo-input" class="visually-hidden">
+          Company name or URL
+        </label>
+        <input
+          id="demo-input"
+          name="input"
+          type="text"
+          required
+          spellcheck="false"
+          autocapitalize="off"
+        />
+        <button type="submit">Fetch</button>
+      </div>
+      <div class="examples">
+        <span id="examples-label">Try:</span>
+        <ul id="examples" aria-labelledby="examples-label"></ul>
+      </div>
+      <p class="in-code" hidden>
+        <span>In code</span>
+        <code id="in-code"></code>
+      </p>
+      <div id="result" class="result" aria-live="polite"></div>
+    </div>
+  </form>
+  <p class="fineprint">
+    Responses are cached in your browser.{' '}
+    <button type="button" id="clear-cache" class="link">
+      Clear cache
+    </button>
+  </p>
+</div>
+
+<script>
+  import '../../main.ts';
+  import '../../legacy.ts';
+</script>

@@ -1,0 +1,37 @@
+---
+title: Resolve a company or posting
+---
+
+import Snippet from '../../../components/Snippet.astro';
+
+## Start with the best identity you have
+
+[listCompanyJobs](/job-scraper/reference/#listCompanyJobs), [resolveCompany](/job-scraper/reference/#resolveCompany) and [resolveJob](/job-scraper/reference/#resolveJob) accept a company name, a careers/job URL, or [CompanyInput](/job-scraper/reference/#CompanyInput). Prefer a known board URL or `{ scraper, slug }` when available.
+
+<Snippet file="api" region="list-board" />
+
+`resolveCompany` gives you the board record without fetching a full posting; `resolveJob` also recovers a posting id. Discovery itself can make listing requests. [fetchJob](/job-scraper/reference/#fetchJob) needs an id from its URL or explicit `id`, and disposes its scraper after fetching.
+
+## Understand the resolution order
+
+For a URL, resolution tries:
+
+1. A scraper’s URL parser: a recognized board identifies its slug and possibly id directly.
+2. The registry’s careers-domain index: previously seen company-owned hosts skip discovery.
+3. Registry names derived from the hostname. Careers prefixes/suffixes gain stripped alternatives.
+4. Page sniffing: links, embeds and scripts can identify a board on a bespoke careers site. Otherwise `og:site_name` and hiring-organization JSON-LD add name candidates for registry lookup.
+5. Slug probing on discoverable boards, using variants such as `acmecorp` and `acme-corp`. Recognized tracking parameters hint which board to try first.
+6. Optional [web search](/job-scraper/guides/search/) if guessing failed and a key is configured.
+7. [UnresolvedCompanyError](/job-scraper/reference/#UnresolvedCompanyError) if no usable board remains.
+
+Name input uses registry lookup before probing. Explicit scraper/slug input bypasses discovery. Object input can restrict `scraper`, disable `search`, and set `minJobs`.
+
+## Require evidence before remembering a guess
+
+A guessed or searched board must serve **3 real postings by default**. A lone trial job such as “Test UAT” or a talent-community catch-all does not count. Set `minJobs` when you deliberately need a different threshold; explicit URLs and registry entries are trusted without this check. Search candidates must also have a slug plausibly matching the company name.
+
+Discovered companies are [registered](/job-scraper/reference/#registerCompany) so later lookups are plain hits. Company-owned careers domains are remembered when attributable to the company; shared board hosts are excluded. Normalized names remove case, punctuation, diacritics and trailing legal suffixes (`Apollo.io, Inc.` → `apolloio`).
+
+## Keep failures meaningful
+
+Malformed or empty input can throw `TypeError`. A board fallback whose page shape changed can contribute an actionable failure message. Browser pre-response failures set `UnresolvedCompanyError.blocked`, because the same lookup may work from Node. An embedded page’s first linked posting id is never substituted for the id the caller requested.

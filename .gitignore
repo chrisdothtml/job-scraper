@@ -11,3 +11,4 @@ site-dist
 TODO.md
 tsconfig.tsbuildinfo
 .*/progress
+site/.astro

@@ -1,0 +1,52 @@
+---
+import { Code } from 'astro:components';
+import { extractSnippet } from '../../snippets.ts';
+
+interface Props {
+  file: string;
+  region?: string;
+}
+const { file, region } = Astro.props;
+const snippets = import.meta.glob<string>('../../snippets/*.ts', {
+  query: '?raw',
+  import: 'default',
+  eager: true,
+});
+const source = snippets[`../../snippets/${file}.ts`];
+if (source === undefined) throw new Error(`Unknown snippet basename: ${file}`);
+const code = extractSnippet(source, region);
+---
+
+<div class="checked-snippet">
+  <Code
+    code={code}
+    lang="ts"
+    themes={{ light: 'github-light', dark: 'github-dark' }}
+    defaultColor={false}
+  />
+  <button type="button" hidden aria-label="Copy code example">
+    Copy
+  </button>
+</div>
+
+<script>
+  if (navigator.clipboard) {
+    for (const block of document.querySelectorAll<HTMLElement>(
+      '.checked-snippet'
+    )) {
+      const button = block.querySelector<HTMLButtonElement>('button')!;
+      button.hidden = false;
+      button.addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(
+            block.querySelector('code')?.textContent ?? ''
+          );
+          button.textContent = 'Copied';
+        } catch {
+          button.textContent = 'Failed';
+        }
+        setTimeout(() => (button.textContent = 'Copy'), 1500);
+      });
+    }
+  }
+</script>

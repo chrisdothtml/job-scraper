@@ -1,0 +1,28 @@
+---
+title: Manage the company registry
+---
+
+import Snippet from '../../../components/Snippet.astro';
+
+The package ships [seedCompanies](/job-scraper/reference/#seedCompanies). On first use they initialize the live registry; runtime discoveries are appended to persistent state, never to the shipped source list.
+
+Use [listCompanies](/job-scraper/reference/#listCompanies) and [findCompany](/job-scraper/reference/#findCompany) to inspect known records, and [registerCompany](/job-scraper/reference/#registerCompany) to persist a board you already know:
+
+<Snippet file="reference" region="resolve" />
+
+## Record identity and provenance
+
+[Company](/job-scraper/reference/#Company) records contain a display `name`, `scraper`, and `slug`, with optional careers `domains` and website `homepage`. [StoredCompany](/job-scraper/reference/#StoredCompany) adds `source: 'seed' | 'discovered'` and an optional homepage miss. Never register a shared board host as one company’s domain; that would misidentify other tenants. [addCompanyDomain](/job-scraper/reference/#addCompanyDomain) rejects those hosts and respects existing ownership.
+
+Re-registering an existing normalized name replaces its record. Use mutation APIs to persist changes rather than editing the map returned by [loadCompanies](/job-scraper/reference/#loadCompanies).
+
+## Upgrade without losing discoveries
+
+Stored state records the package version it was reconciled against. Matching versions load directly. After an upgrade, [mergeRegistry](/job-scraper/reference/#mergeRegistry) reconciles records:
+
+- Shipped names win for scraper/slug, allowing corrected board identities to take effect.
+- Discoveries absent from the shipped list survive.
+- Removed seed entries disappear.
+- Careers domains are additive. A stored homepage is retained when the shipped entry has no homepage.
+
+[clearCompaniesCache](/job-scraper/reference/#clearCompaniesCache) only drops in-memory state; the next load rereads storage. For resetting stored state and controlling its location, see [state storage](/job-scraper/guides/state/).

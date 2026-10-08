@@ -1,6 +1,5 @@
 /**
- * Progressive enhancements for the docs below the demo. Without JS, every tab
- * panel shows (each under its own label) and code has no copy button.
+ * Accessible tabs and clipboard controls for dynamically rendered demo output.
  */
 
 let nextId = 0;
@@ -106,24 +105,4 @@ export function addCopyButton(block: HTMLElement) {
   bar.className = 'code-bar';
   bar.append(lang, button);
   block.prepend(bar);
-}
-
-/** Opens the `<details>` a link points into, so `#caching` lands somewhere */
-function openTarget() {
-  const id = location.hash.slice(1);
-  const target = id ? document.getElementById(id) : null;
-  const details = target?.closest('details');
-  if (target && details && !details.open) {
-    details.open = true;
-    target.scrollIntoView();
-  }
-}
-
-export function enhanceDocs() {
-  document
-    .querySelectorAll<HTMLElement>('.tabs')
-    .forEach((group) => enhanceTabs(group));
-  document.querySelectorAll<HTMLElement>('.code-block').forEach(addCopyButton);
-  openTarget();
-  addEventListener('hashchange', openTarget);
 }

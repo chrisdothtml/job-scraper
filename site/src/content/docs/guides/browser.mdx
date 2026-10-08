@@ -1,0 +1,21 @@
+---
+title: Run in a browser
+---
+
+import Snippet from '../../../components/Snippet.astro';
+
+Import the same package API through a bundler. The [home-page demo](/job-scraper/) runs the package itself. Only Ashby, Greenhouse, Lever, SmartRecruiters and Rippling currently allow the cross-origin requests needed by browser callers.
+
+<Snippet file="browser" />
+
+## Recognize a blocked request
+
+A direct board request can raise [CorsError](/job-scraper/reference/#CorsError). Browser network errors before a response are indistinguishable from a CORS refusal, so the class reports a likely cause rather than proof. During discovery, [UnresolvedCompanyError](/job-scraper/reference/#UnresolvedCompanyError) exposes `blocked` when at least one candidate request was blocked. Hand these tasks to your server when appropriate; Node does not enforce browser CORS.
+
+## Configure and persist state
+
+Use [configureCache](/job-scraper/reference/#configureCache) and [configureSearch](/job-scraper/reference/#configureSearch); Node environment variables do not apply. Registry/search state uses `localStorage` with a memory fallback. Response caching uses the Cache API, and is disabled when unavailable. [Exported paths](/job-scraper/guides/state/) are storage identifiers here, not filesystem paths.
+
+## Homepage and rendering limits
+
+[Homepage resolution](/job-scraper/guides/homepages/) cannot read most candidate sites across origins. It can use a board-declared website, careers-domain parents and exact-name trusted lookups, but cannot verify arbitrary guessed domains. [renderScrapedPosting](/job-scraper/reference/#renderScrapedPosting) runs without a DOM; its Markdown is not an HTML sanitizer. Apply your frontend’s sanitization policy before rendering untrusted scraped content as HTML.

@@ -1,0 +1,55 @@
+---
+title: Install and use job data
+---
+
+import Snippet from '../../../components/Snippet.astro';
+
+## Install
+
+```sh
+npm i @chrisdothtml/job-scraper
+```
+
+Use the equivalent `bun add`, `pnpm add`, `yarn add`, or `deno add npm:` command. The package has no runtime dependencies and supports Node 22+, Bun, Deno and browsers through a bundler. Browser board access depends on [CORS support](/job-scraper/guides/browser/).
+
+<h2 id="rendering">Render a posting for LLM input</h2>
+
+Fetch with [fetchJob](/job-scraper/reference/#fetchJob), then use [renderScrapedPosting](/job-scraper/reference/#renderScrapedPosting) to get readable Markdown. This self-contained example uses synthetic source data so it runs without a network request:
+
+<Snippet file="rendering" />
+
+Complete mode is the default: all parsed JSON fields and outer job metadata are represented, including empty containers and extra application/source data. Compact mode selects and deduplicates posting prose for shorter prompts; it may omit meaningful fields. Neither representation is a lossless serialization. The original job object and **exact content string** remain in `raw` and `raw.content`; keep them alongside the Markdown for provenance. HTML conversion is not a sanitizer. Treat scraped content as untrusted when rendering it in a frontend or building model prompts.
+
+Set `postingUrl` if the source’s `job.url` points to an application form and you know the public posting URL. It changes the displayed link without altering the source object.
+
+## Keep structured source data
+
+When a downstream consumer expects the original board payload, retain `job.content` instead. It is usually serialized JSON, but can also be Markdown or plaintext. This checked helper preserves that source string:
+
+<Snippet file="llm" />
+
+A careers page must carry the requested id (for example `gh_jid`) or you must pass an explicit `id`. A board landing page is not a request for its first linked job.
+
+## Load jobs in a frontend
+
+Use [listCompanyJobs](/job-scraper/reference/#listCompanyJobs) through your bundler. Distinguish blocked requests so you can hand them to your server:
+
+<Snippet file="browser" />
+
+See [browser behavior](/job-scraper/guides/browser/) before choosing boards.
+
+## Check whether a saved posting is still open
+
+A missing posting is different from a failed request. This helper treats [JobNotFoundError](/job-scraper/reference/#JobNotFoundError) and HTTP 404/410 as closed, while propagating rate limits and network failures:
+
+<Snippet file="still-open" />
+
+Set an appropriate [cache TTL](/job-scraper/guides/caching/) so an old successful response does not hide a recent closure.
+
+## Alert on new postings
+
+Run this Node script with your own scheduler (cron or CI). The first run prints all matching jobs, then it remembers ids per company. Failed companies retain their prior seen ids. It disables board-response caching to compare fresh lists:
+
+<Snippet file="watchlist" />
+
+The package supplies scraping APIs; scheduling and alert delivery belong to your application. For fetching many full postings, reuse [one scraper instance](/job-scraper/reference/#Scraper) to share its in-memory listing cache.

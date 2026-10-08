@@ -85,7 +85,11 @@ A daily workflow (`.github/workflows/scraper-health.yml`) runs these live scrape
 
 ## Docs
 
-The docs are the [site](https://chrisdothtml.github.io/job-scraper/): `site/docs.html`, rendered into `site/index.html` at build time. Its code blocks are pulled from `site/snippets/` (by `// #region`), which are real modules, so `bun run typecheck` catches a doc example that's drifted from the API. Preview with `bun run site:dev`.
+The [docs site](https://chrisdothtml.github.io/job-scraper/) uses Astro and Starlight. Edit `site/src/content/docs/`: `index.mdx` is the home page, `reference/index.mdx` covers the public API, and `guides/` holds topic guides. Every public export, including types, has an exact, case-sensitive reference anchor.
+
+Code examples live in `site/snippets/` as checked TypeScript modules. Use `<Snippet file="api" region="list-name" />` to display a complete file or named `// #region`; repeated regions are joined, including their imports. `bun run typecheck` checks the modules and Astro components. Astro currently needs a TypeScript 6 language-service engine, so the private `site/checker` package isolates that engine for the standard Astro checker; the library and snippets keep the TypeScript 7 compiler. `bun run site:build` also checks extracted examples independently, public-export coverage, and built internal links and anchors.
+
+Run `bun run site:dev` for editing. Run `bun run site:build` then `bun run site:preview` to check the static site with its search index. Both serve under `/job-scraper/`. Output goes to `site-dist/` for GitHub Pages; framework dependencies are development-only.
 
 ## Before opening a PR
 

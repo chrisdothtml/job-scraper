@@ -1,13 +1,33 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
-  "entry": [
-    "src/platform/{node,browser}.ts",
-    "src/**/*.test.ts",
-    "src/scripts/*.ts",
-    "site/main.ts",
-    "site/snippets/*.ts"
-  ],
-  "project": ["src/**/*.ts", "site/**/*.ts"],
   "ignoreExportsUsedInFile": true,
-  "tags": ["-@knipignore"]
+  "tags": ["-@knipignore"],
+  "workspaces": {
+    ".": {
+      "entry": [
+        "src/platform/{node,browser}.ts",
+        "src/**/*.test.ts",
+        "src/scripts/*.ts",
+        "site/main.ts",
+        "site/snippets/*.ts",
+        "site/src/content/docs/**/*.mdx",
+        "site/src/components/*.astro",
+        "site/astro.config.mjs",
+        "site/src/content.config.ts"
+      ],
+      "project": [
+        "src/**/*.ts",
+        "site/**/*.ts",
+        "site/**/*.astro",
+        "site/**/*.mdx",
+        "site/**/*.mjs",
+        "!site/checker/**"
+      ],
+      "ignoreDependencies": ["@astrojs/check"]
+    },
+    "site/checker": {
+      "entry": [],
+      "project": ["*.mjs"]
+    }
+  }
 }

@@ -1,0 +1,103 @@
+@font-face {
+  font-family: 'IBM Plex Sans';
+  font-style: normal;
+  font-weight: 100 700;
+  font-display: swap;
+  src: url('../assets/fonts/plex-sans.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('../assets/fonts/plex-mono-400.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('../assets/fonts/plex-mono-500.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('../assets/fonts/plex-mono-600.woff2') format('woff2');
+}
+
+:root {
+  color-scheme: dark;
+  --sl-font: 'IBM Plex Sans';
+  --sl-font-mono: 'IBM Plex Mono';
+  --sl-color-white: #e8e7e2;
+  --sl-color-gray-1: #e8e7e2;
+  --sl-color-gray-2: #e8e7e2;
+  --sl-color-gray-3: #9b9a93;
+  --sl-color-gray-4: #9b9a93;
+  --sl-color-gray-5: #2b2d2a;
+  --sl-color-gray-6: #181a18;
+  --sl-color-gray-7: #181a18;
+  --sl-color-black: #101110;
+
+  --sl-color-accent-low: #173c2c;
+  --sl-color-accent: #4cc48a;
+  --sl-color-accent-high: #a0e7c1;
+  --sl-color-text: #e8e7e2;
+  --sl-color-text-accent: #4cc48a;
+  --sl-color-text-invert: #101110;
+  --sl-color-bg: #101110;
+  --sl-color-bg-nav: #181a18;
+  --sl-color-bg-sidebar: #181a18;
+  --sl-color-bg-inline-code: #181a18;
+  --sl-color-bg-accent: #a0e7c1;
+  --sl-color-hairline-light: #2b2d2a;
+  --sl-color-hairline: #2b2d2a;
+  --sl-color-hairline-shade: #101110;
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+  --sl-color-white: #18181a;
+  --sl-color-gray-1: #18181a;
+  --sl-color-gray-2: #18181a;
+  --sl-color-gray-3: #64625c;
+  --sl-color-gray-4: #64625c;
+  --sl-color-gray-5: #dcd9d0;
+  --sl-color-gray-6: #efede6;
+  --sl-color-gray-7: #f7f6f2;
+  --sl-color-black: #f7f6f2;
+
+  --sl-color-accent-low: #e0f1e8;
+  --sl-color-accent: #0b7a4b;
+  --sl-color-accent-high: #075d39;
+  --sl-color-text: #18181a;
+  --sl-color-text-accent: #0b7a4b;
+  --sl-color-text-invert: #f7f6f2;
+  --sl-color-bg: #f7f6f2;
+  --sl-color-bg-nav: #f7f6f2;
+  --sl-color-bg-sidebar: #f7f6f2;
+  --sl-color-bg-inline-code: #efede6;
+  --sl-color-bg-accent: #0b7a4b;
+  --sl-color-hairline-light: #efede6;
+  --sl-color-hairline: #dcd9d0;
+  --sl-color-hairline-shade: #dcd9d0;
+}
+
+.site-title {
+  gap: 10px;
+  color: var(--sl-color-text) !important;
+  font-family: 'IBM Plex Mono', var(--sl-font-system-mono);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.site-title img {
+  width: 8px;
+  height: 8px;
+  flex: none;
+}

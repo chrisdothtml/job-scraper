@@ -6,6 +6,7 @@ on:
     paths:
       - site/**
       - src/**
+      - tsconfig.json
       - package.json
       - bun.lock
       - .github/workflows/pages.yml

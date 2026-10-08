@@ -1,0 +1,841 @@
+---
+title: API reference
+description: Package-root exports, signatures, options, results, and errors.
+---
+
+import Snippet from '../../../components/Snippet.astro';
+
+All symbols below are exported from `@chrisdothtml/job-scraper`, including the types. Start with [guides](/job-scraper/guides/) for task-oriented examples. Network APIs may fail because of transport errors or board changes; the error classes below describe failures callers can distinguish.
+
+## Jobs
+
+<h3 id="listCompanyJobs">listCompanyJobs</h3>
+
+```ts
+listCompanyJobs(input: CompanyInput | string): Promise<ListedJob[]>
+```
+
+Lists all currently posted jobs by company name, careers URL, or explicit scraper and slug. Resolves the company first and disposes its scraper afterward. Throws `UnresolvedCompanyError` if resolution fails; invalid input can throw `TypeError`. Board requests can throw `HttpError` or `CorsError`.
+
+<Snippet file="api" region="list-name" />
+
+<Snippet file="api" region="list-url" />
+
+<Snippet file="api" region="list-board" />
+
+<h3 id="fetchJob">fetchJob</h3>
+
+```ts
+fetchJob(input: FetchJobInput | string): Promise<Job>
+```
+
+Fetches one full posting. A string must be a posting URL carrying an id, or use object input with `id`. An explicit `id` overrides the id parsed from a URL. Throws `TypeError` when no id can be recovered, plus resolution and request errors. A landing page does not select an arbitrary job linked from its markup. Missing postings can raise `JobNotFoundError` or an HTTP 404/410.
+
+<Snippet file="api" region="job-url" />
+
+<Snippet file="api" region="job-embedded" />
+
+<Snippet file="api" region="job-id" />
+
+<h3 id="FetchJobInput">FetchJobInput</h3>
+
+```ts
+interface FetchJobInput extends CompanyInput {
+  id?: string;
+}
+```
+
+The board-specific job id is required unless the supplied URL carries it. Inherits all resolution options from [CompanyInput](#CompanyInput).
+
+<h3 id="ListedJob">ListedJob</h3>
+
+```ts
+interface ListedJob {
+  id: string;
+  title: string;
+  location: string;
+  url: string;
+}
+```
+
+A listing with its board-specific stable id, title, location and URL. Fields unavailable from source data can be empty strings.
+
+<h3 id="Job">Job</h3>
+
+```ts
+interface Job extends ListedJob {
+  content: string;
+}
+```
+
+The full posting. `content` is the board’s original string: often serialized JSON, sometimes Markdown, plaintext or HTML. Use the rendering helpers to create readable text and retain the original for provenance.
+
+<h3 id="JobNotFoundError">JobNotFoundError</h3>
+
+```ts
+class JobNotFoundError extends Error {
+  jobId: string;
+  companySlug: string;
+}
+```
+
+A scraper could not find the requested id in its board’s postings. Distinct from network, quota or server failures; those do not prove a posting has closed.
+
+## Rendering and text
+
+<h3 id="renderScrapedPosting">renderScrapedPosting</h3>
+
+```ts
+renderScrapedPosting(job: Job, options?: RenderPostingOptions): RenderedPosting
+```
+
+Pure, runtime-independent renderer returning `{ markdown, body, raw }`. The default **complete** mode accounts for every parsed JSON field, including nested containers, empty values and scalars, with JSON-pointer labels and an Additional posting data section. It also includes exact outer job fields in Source job metadata. HTML fields become readable Markdown. **Compact** mode selects posting prose, filters application/legal/metadata-like keys, and deduplicates overlapping sections; it can omit useful source fields. Plain strings need at least 200 characters and whitespace to count as compact body prose; rich HTML sections can be shorter. Non-JSON content is converted as rich text. `postingUrl` overrides the displayed posting link, useful when the scraper’s URL is an application link.
+
+`raw` is the original job object; `raw.content` preserves the exact input string and the renderer does not mutate it. Markdown is a readable representation, **not a lossless serialization or HTML sanitizer**. JSON parsing itself can normalize numeric representation and duplicate object keys. Preserve `raw` whenever exact source fidelity matters. See [rendering for LLM input](/job-scraper/guides/recipes/#rendering).
+
+<Snippet file="rendering" />
+
+<h3 id="RenderPostingOptions">RenderPostingOptions</h3>
+
+```ts
+type RenderPostingOptions = {
+  mode?: 'complete' | 'compact';
+  postingUrl?: string;
+};
+```
+
+`mode` defaults to `complete`. `postingUrl` defaults to `job.url` and affects the displayed link, not `raw`.
+
+<h3 id="RenderedPosting">RenderedPosting</h3>
+
+```ts
+type RenderedPosting = { markdown: string; body: string; raw: Job };
+```
+
+`markdown` includes the title, available company/location/compensation/posting metadata, and body, with a trailing newline. `body` contains the prose and complete-mode source accounting. `raw` is the unchanged input object.
+
+<h3 id="richTextToMarkdown">richTextToMarkdown</h3>
+
+```ts
+richTextToMarkdown(text: string): string
+```
+
+Accepts HTML, escaped HTML, Markdown or plain text. Decodes HTML entities when escaped markup is detected, converts markup, normalizes line endings and excess whitespace, and trims the result.
+
+<h3 id="htmlToMarkdown">htmlToMarkdown</h3>
+
+```ts
+htmlToMarkdown(html: string): string
+```
+
+Forgiving HTML conversion retaining headings, paragraphs, lists, links, emphasis, code, blockquotes and tables as readable Markdown. Drops scripts/styles and other non-posting elements; this is not a sanitizer and does not preserve exact markup.
+
+<h3 id="htmlToText">htmlToText</h3>
+
+```ts
+htmlToText(html: string): string
+```
+
+Renders HTML to plain text using the same structural walk: lists and table rows remain readable, links keep their text. Plain text has whitespace tidied. Intended for text consumers, not sanitizing HTML for insertion into a page.
+
+<h3 id="decodeHtmlEntities">decodeHtmlEntities</h3>
+
+```ts
+decodeHtmlEntities(text: string): string
+```
+
+Decodes supported named and numeric HTML entities. Unsupported entities remain unchanged.
+
+<h3 id="looksLikeHtml">looksLikeHtml</h3>
+
+```ts
+looksLikeHtml(text: string): boolean
+```
+
+Heuristic markup detection used by rich-text conversion; not validation of an HTML document.
+
+<h3 id="looksLikeEscapedHtml">looksLikeEscapedHtml</h3>
+
+```ts
+looksLikeEscapedHtml(text: string): boolean
+```
+
+Heuristic detection of entity-escaped HTML such as `&lt;p&gt;`. Does not convert the input itself.
+
+## Resolution
+
+<h3 id="resolveCompany">resolveCompany</h3>
+
+```ts
+resolveCompany(input: CompanyInput | string): Promise<ResolvedCompany>
+```
+
+Resolves a name, URL, or explicit board to a company without fetching a full job. Discovery can still make board-list, page and search requests and persist registry entries. Throws `TypeError` for missing input or an unknown scraper. If no usable board is found, a recorded fallback page-shape failure (`BoardShapeError`) is propagated separately; otherwise resolution throws `UnresolvedCompanyError`. See [resolution order](/job-scraper/guides/resolution/).
+
+<Snippet file="reference" region="resolve" />
+
+<h3 id="resolveJob">resolveJob</h3>
+
+```ts
+resolveJob(input: CompanyInput | string): Promise<ResolvedJob>
+```
+
+Runs the same resolution process and includes a recovered job id, or `null` for company-level input. Does not fetch a full posting. Embedded page links identify the board; their ids do not override the caller’s posting id.
+
+<h3 id="CompanyInput">CompanyInput</h3>
+
+```ts
+interface CompanyInput {
+  company?: string;
+  url?: string;
+  scraper?: ScraperName;
+  slug?: string;
+  search?: boolean;
+  minJobs?: number;
+}
+```
+
+Use `company`, `url`, or a board slug; `{ scraper, slug }` skips discovery. `scraper` can also restrict resolution to a board. `search` defaults to allowed when a SerpApi key is configured; `false` skips it for this call. `minJobs` defaults to **3 real postings** for probing/search only; explicit URLs and registry entries are trusted without that threshold.
+
+<h3 id="ResolvedCompany">ResolvedCompany</h3>
+
+```ts
+interface ResolvedCompany extends Company {
+  discovered: boolean;
+}
+```
+
+A company with a concrete scraper and slug. `discovered` reports discovery rather than a direct URL, explicit board or registry lookup.
+
+<h3 id="ResolvedJob">ResolvedJob</h3>
+
+```ts
+interface ResolvedJob extends ResolvedCompany {
+  jobId: string | null;
+}
+```
+
+A resolved company plus an id when the input addresses a single posting.
+
+<h3 id="UnresolvedCompanyError">UnresolvedCompanyError</h3>
+
+```ts
+class UnresolvedCompanyError extends Error {
+  input: string;
+  blocked: boolean;
+}
+```
+
+No scraper could serve the input. In browsers, `blocked` indicates at least one attempted page or board request failed before a response, so server-side resolution may succeed. A recorded board fallback page-shape failure is thrown separately as `BoardShapeError` before this error is constructed. `BoardShapeError` is not a package-root export.
+
+<h3 id="parseJobUrl">parseJobUrl</h3>
+
+```ts
+parseJobUrl(input: string, only?: ScraperName): (ResolvedJob & { discovered: false }) | null
+```
+
+Pure URL parsing through the supported scrapers, optionally restricted to one scraper. Returns `null` for invalid or unrecognized URLs. Does not verify that the board or posting exists.
+
+<h3 id="createScraper">createScraper</h3>
+
+```ts
+createScraper(company: Company): Scraper
+```
+
+Constructs the board scraper from the record’s scraper name and slug. Caller owns disposal. Throws for an unknown scraper.
+
+<h3 id="boardHints">boardHints</h3>
+
+```ts
+boardHints(url: URL): ScraperName[]
+```
+
+Returns scrapers hinted at by recognized query parameters, such as Greenhouse’s `gh_jid`. A hint is not verification.
+
+<h3 id="companyNameCandidates">companyNameCandidates</h3>
+
+```ts
+companyNameCandidates(name: string): string[]
+```
+
+Returns the original name and, when different, a version stripped of careers/jobs prefixes and suffixes, in order.
+
+<h3 id="companyNameFromUrl">companyNameFromUrl</h3>
+
+```ts
+companyNameFromUrl(url: URL): string | null
+```
+
+Best-effort name from the hostname after removing common board subdomains. It is a heuristic, not public-suffix parsing or verified identity.
+
+<h3 id="jobIdFromUrl">jobIdFromUrl</h3>
+
+```ts
+jobIdFromUrl(url: URL): string | null
+```
+
+Best-effort id from `gh_jid`, `pid`, `jobId`, `job_id`, or `lever-job-id`, then an all-digit final path segment. Returns `null` otherwise.
+
+## Registry
+
+<h3 id="Company">Company</h3>
+
+```ts
+interface Company {
+  name: string;
+  scraper: ScraperName;
+  slug: string;
+  domains?: string[];
+  homepage?: string;
+}
+```
+
+Display name and board identity. `domains` are company-owned careers hostnames, never shared board hosts. `homepage` is the company’s website origin, distinct from its careers board.
+
+<h3 id="StoredCompany">StoredCompany</h3>
+
+```ts
+interface StoredCompany extends Company {
+  source: 'seed' | 'discovered';
+  homepageMiss?: HomepageMiss;
+}
+```
+
+Persistent registry record with provenance and optionally a remembered failed homepage lookup.
+
+<h3 id="HomepageMiss">HomepageMiss</h3>
+
+```ts
+interface HomepageMiss {
+  ts: number;
+  searched: boolean;
+  version: string;
+}
+```
+
+Homepage miss timestamp (milliseconds), whether web search was included, and package version. Used to avoid repeated lookups while allowing retries after expiry or an upgrade.
+
+<h3 id="seedCompanies">seedCompanies</h3>
+
+```ts
+const seedCompanies: Company[];
+```
+
+Bundled company records used to initialize and reconcile the registry. Runtime discoveries are stored separately, not written into this shipped list.
+
+<h3 id="loadCompanies">loadCompanies</h3>
+
+```ts
+loadCompanies(): Promise<Map<string, StoredCompany>>
+```
+
+Loads, seeds or reconciles persistent state, then returns the in-memory map keyed by normalized company names. Treat returned records as registry state; use the mutation APIs to persist changes.
+
+<h3 id="listCompanies">listCompanies</h3>
+
+```ts
+listCompanies(): Promise<StoredCompany[]>
+```
+
+Returns all known companies sorted by display name, including bundled and discovered entries.
+
+<h3 id="findCompany">findCompany</h3>
+
+```ts
+findCompany(name: string): Promise<StoredCompany | null>
+```
+
+Looks up a display name or normalized key without probing boards. Returns `null` when absent.
+
+<h3 id="findCompanyByDomain">findCompanyByDomain</h3>
+
+```ts
+findCompanyByDomain(hostname: string): Promise<StoredCompany | null>
+```
+
+Looks up a known careers hostname, checking parents from most specific to least. Shared job-board hosts are excluded.
+
+<h3 id="registerCompany">registerCompany</h3>
+
+```ts
+registerCompany(company: Company, source?: StoredCompany['source']): Promise<StoredCompany>
+```
+
+Persists a record; `source` defaults to `discovered`. Re-registering replaces the existing normalized-name entry. Throws `Error` for an invalid company record.
+
+<h3 id="addCompanyDomain">addCompanyDomain</h3>
+
+```ts
+addCompanyDomain(name: string, hostname: string): Promise<StoredCompany | null>
+```
+
+Normalizes and remembers a company-owned careers domain. Returns `null` for invalid/shared board hosts or an unknown company. Existing domain ownership is retained; repeat additions do not duplicate entries.
+
+<h3 id="setCompanyHomepage">setCompanyHomepage</h3>
+
+```ts
+setCompanyHomepage(name: string, outcome: { homepage: string } | { miss: HomepageMiss }): Promise<StoredCompany | null>
+```
+
+Persists either a homepage or a failed lookup. A successful homepage clears the previous miss. Returns `null` for an unknown company.
+
+<h3 id="clearCompaniesCache">clearCompaniesCache</h3>
+
+```ts
+clearCompaniesCache(): void
+```
+
+Drops the in-memory registry and domain index so the next load rereads storage. Does **not** delete the persisted registry.
+
+<h3 id="mergeRegistry">mergeRegistry</h3>
+
+```ts
+mergeRegistry(stored: StoredCompany[]): StoredCompany[]
+```
+
+Pure reconciliation against bundled records. Shipped board identities win for covered names; user discoveries absent from the seed survive; removed seed entries disappear. Preserves supported stored enrichment when merging. See [registry upgrades](/job-scraper/guides/registry/).
+
+<h3 id="normalizeCompanyName">normalizeCompanyName</h3>
+
+```ts
+normalizeCompanyName(input: string): string
+```
+
+Builds the registry key by folding case/diacritics, removing punctuation and trailing legal suffixes. For example, `Apollo.io, Inc.` becomes `apolloio`.
+
+<h3 id="normalizeDomain">normalizeDomain</h3>
+
+```ts
+normalizeDomain(input: string): string
+```
+
+Accepts a URL or hostname; lowercases the host, removes a port and leading `www.`, and strips outer dots.
+
+<h3 id="isBoardDomain">isBoardDomain</h3>
+
+```ts
+isBoardDomain(hostname: string): boolean
+```
+
+Checks a normalized host against shared board domains, including tenant subdomains. Prevents a company claiming an entire shared board host.
+
+## Homepages
+
+<h3 id="resolveHomepage">resolveHomepage</h3>
+
+```ts
+resolveHomepage(input: Company | string, options?: HomepageOptions): Promise<string | null>
+```
+
+Returns the company website origin, not its careers URL. String input is looked up/resolved first, so unresolved-company errors can propagate. Uses remembered homepages/misses and persists new outcomes for registered companies. Individual homepage sources fail best-effort; `null` means no supported source settled it. The object input is a full `Company` record, not arbitrary `CompanyInput`.
+
+<Snippet file="reference" region="homepage" />
+
+<h3 id="findHomepage">findHomepage</h3>
+
+```ts
+findHomepage(company: Company, options?: HomepageOptions): Promise<FoundHomepage | null>
+```
+
+Runs homepage discovery directly and returns its source. Does not use or persist registry outcomes itself. Sources are best-effort; see [homepage verification and browser limits](/job-scraper/guides/homepages/).
+
+<h3 id="HomepageOptions">HomepageOptions</h3>
+
+```ts
+interface HomepageOptions {
+  search?: boolean;
+}
+```
+
+Controls optional web search. Defaults to `SearchConfig.homepages` (false); needs a configured key and remaining quota.
+
+<h3 id="HomepageSource">HomepageSource</h3>
+
+```ts
+type HomepageSource =
+  | 'board'
+  | 'careers-domain'
+  | 'clearbit'
+  | 'wikidata'
+  | 'guess'
+  | 'search';
+```
+
+Source of a discovered homepage, distinguishing a board-declared website from candidate lookups.
+
+<h3 id="FoundHomepage">FoundHomepage</h3>
+
+```ts
+interface FoundHomepage {
+  url: string;
+  source: HomepageSource;
+}
+```
+
+Website origin and where it came from. Returned by `findHomepage`.
+
+## Caching and request errors
+
+<h3 id="configureCache">configureCache</h3>
+
+```ts
+configureCache(config: Partial<CacheConfig>): void
+```
+
+Merges process-wide overrides. Explicit `undefined` drops an override, restoring environment/default fallback. Configuration can disable caching, but cannot force caching for calls that opted out.
+
+<Snippet file="reference" region="cache-config" />
+
+<h3 id="getCacheConfig">getCacheConfig</h3>
+
+```ts
+getCacheConfig(): CacheConfig
+```
+
+Returns effective settings: explicit override → Node environment → defaults. See [cache policy](/job-scraper/guides/caching/).
+
+<h3 id="CacheConfig">CacheConfig</h3>
+
+```ts
+interface CacheConfig {
+  enabled: boolean;
+  ttl: number | null;
+  dir: string;
+}
+```
+
+`enabled` defaults true. `ttl` is milliseconds; `null` preserves each scraper’s choice (usually one day). `dir` defaults to the cache path; in browsers it names the Cache API cache.
+
+<h3 id="clearCache">clearCache</h3>
+
+```ts
+clearCache(): Promise<number>
+```
+
+Deletes cached board responses from the currently configured cache directory/name and returns the number removed. Does not clear registry or search state.
+
+<h3 id="HttpError">HttpError</h3>
+
+```ts
+class HttpError extends Error {
+  status: number;
+  statusText: string;
+  url: string;
+}
+```
+
+A board request returned a non-2xx status. Use `status` to distinguish a missing posting from rate limits or server failures. Failed responses are not cached.
+
+<h3 id="CorsError">CorsError</h3>
+
+```ts
+class CorsError extends Error {
+  url: string;
+}
+```
+
+Browser request failed before a response, most likely CORS; plain network failure looks identical. Not thrown under Node, which does not enforce browser CORS.
+
+## Search
+
+<h3 id="configureSearch">configureSearch</h3>
+
+```ts
+configureSearch(config: Partial<SearchConfig>): void
+```
+
+Merges process-wide SerpApi settings; explicit `undefined` removes an override. Search remains optional and needs an API key.
+
+<Snippet file="search" region="config" />
+
+<h3 id="getSearchConfig">getSearchConfig</h3>
+
+```ts
+getSearchConfig(): SearchConfig
+```
+
+Returns effective overrides, Node environment and defaults. Browsers only use explicit settings/defaults.
+
+<h3 id="SearchConfig">SearchConfig</h3>
+
+```ts
+interface SearchConfig {
+  apiKey: string | null;
+  limit: number;
+  period: 'day' | 'month';
+  resultCount: number;
+  resultTtl: number;
+  batchSize: number;
+  homepages: boolean;
+}
+```
+
+Defaults: no key (unless Node environment supplies one), **250/month**, **10** results, **30 days** result TTL in milliseconds, **5** companies per batch, homepage search **false**. See [search quota and environment](/job-scraper/guides/search/).
+
+<h3 id="canSearch">canSearch</h3>
+
+```ts
+canSearch(): Promise<boolean>
+```
+
+Reports whether a key is configured and the current quota period has searches remaining. Does not make a web search or reserve quota.
+
+<h3 id="searchForBoards">searchForBoards</h3>
+
+```ts
+searchForBoards(companyName: string): Promise<SearchedBoard[]>
+```
+
+Searches supported board domains for one company. New queries are skipped when disabled or out of quota; already remembered results can still be reused. Returns an empty array when no matching results are available. Results are candidates: resolution additionally verifies board activity before registration.
+
+<h3 id="searchForBoardsBatch">searchForBoardsBatch</h3>
+
+```ts
+searchForBoardsBatch(companyNames: string[]): Promise<BatchedSearch[]>
+```
+
+Reuses cached results and searches remaining names in OR queries using `batchSize` names and up to 100 results per query. Results are attributed by board slug. Concurrent equivalent searches share work.
+
+<Snippet file="search" region="batch" />
+
+<h3 id="searchForHomepage">searchForHomepage</h3>
+
+```ts
+searchForHomepage(companyName: string): Promise<string[]>
+```
+
+Searches for official-website URL candidates. Does not verify ownership or persist a homepage outcome. Returns no results when search cannot run; homepage resolution performs verification.
+
+<h3 id="SearchedBoard">SearchedBoard</h3>
+
+```ts
+interface SearchedBoard extends ParsedUrl {
+  scraper: ScraperName;
+  url: string;
+}
+```
+
+Parsed board candidate and original search-result URL, including nullable posting id.
+
+<h3 id="BatchedSearch">BatchedSearch</h3>
+
+```ts
+interface BatchedSearch {
+  companyName: string;
+  boards: SearchedBoard[];
+}
+```
+
+Per-company board-search results, including an empty list for a miss.
+
+<h3 id="clearSearchCache">clearSearchCache</h3>
+
+```ts
+clearSearchCache(): Promise<number>
+```
+
+Clears remembered board-search results and in-flight bookkeeping, returning the number of cached company keys removed. Does not reset quota accounting.
+
+## Page discovery
+
+<h3 id="findBoardsInPage">findBoardsInPage</h3>
+
+```ts
+findBoardsInPage(html: string): SniffedBoard[]
+```
+
+Pure markup inspection: extracts board URLs using scraper parsers, groups by scraper/slug, and sorts by reference count. Examines up to two million characters. Does not execute JavaScript or verify board activity.
+
+<h3 id="findNamesInPage">findNamesInPage</h3>
+
+```ts
+findNamesInPage(html: string): string[]
+```
+
+Pure extraction of company-name candidates from `og:site_name`, hiring-organization JSON-LD and application-name metadata, adding careers-suffix-stripped forms. Results are ordered and deduplicated; arbitrary page titles are not treated as company identity.
+
+<h3 id="sniffPage">sniffPage</h3>
+
+```ts
+sniffPage(url: string): Promise<SniffedPage>
+```
+
+Fetches a careers page best-effort and extracts boards/names. Fetch failures return empty arrays; `blocked` distinguishes browser pre-response failures. Does not run page JavaScript.
+
+<h3 id="sniffBoards">sniffBoards</h3>
+
+```ts
+sniffBoards(url: string): Promise<SniffedBoard[]>
+```
+
+Convenience wrapper returning only `sniffPage(url).boards`; failure yields an empty array without the blocked diagnostic.
+
+<h3 id="SniffedBoard">SniffedBoard</h3>
+
+```ts
+interface SniffedBoard extends ParsedUrl {
+  scraper: ScraperName;
+  hits: number;
+}
+```
+
+A board reference recovered from markup with its count and nullable job id.
+
+<h3 id="SniffedPage">SniffedPage</h3>
+
+```ts
+interface SniffedPage {
+  boards: SniffedBoard[];
+  names: string[];
+  blocked: boolean;
+}
+```
+
+Boards most-referenced first, name candidates most trustworthy first, and whether a browser fetch failed before any response.
+
+## Scraper classes and registry
+
+<h3 id="Scraper">Scraper</h3>
+
+```ts
+abstract class Scraper {
+  constructor(companySlug: string);
+  static readonly discoverable: boolean;
+  static readonly boardDomains: readonly string[];
+  static readonly urlHintParams: readonly string[];
+  static slugCandidates(companyName: string): string[];
+  static parseUrl(url: URL): ParsedUrl | null;
+  static fetchHomepage(
+    slug: string,
+    signal?: AbortSignal
+  ): Promise<string | null>;
+  getJobsList(testing?: boolean): Promise<ListedJob[]>;
+  getJobContent(id: string): Promise<string>;
+  getJob(id: string): Promise<Job>;
+  jobUrl(id: string): string | null;
+  hasCompanyBoard(minJobs?: number): Promise<boolean>;
+  dispose(): void;
+}
+```
+
+Base scraper class. `getJob` combines full content with available listing fields. Reuse one instance for bulk jobs so board-list caches can be shared, and dispose in `finally`. `testing` requests a minimal listing for probes, not necessarily exactly one job. `hasCompanyBoard` defaults to **1** real posting (the resolution pipeline explicitly passes its separate default of 3), returns false for ordinary board misses, and lets fallback-shape/browser-block failures propagate. Static capabilities include `discoverable`, `boardDomains`, `urlHintParams`, `slugCandidates`, `parseUrl` and best-effort `fetchHomepage`. `Symbol.dispose` is attached only when the runtime supports it; otherwise call `dispose()` explicitly. See [supported boards](/job-scraper/guides/boards/).
+
+<Snippet file="reference" region="bulk" />
+
+<h3 id="ScraperSubclass">ScraperSubclass</h3>
+
+```ts
+interface ScraperSubclass {
+  new (companySlug: string): Scraper;
+  readonly name: string;
+  readonly discoverable: boolean;
+  readonly boardDomains: readonly string[];
+  readonly urlHintParams: readonly string[];
+  slugCandidates(companyName: string): string[];
+  parseUrl(url: URL): ParsedUrl | null;
+}
+```
+
+Constructor/static-capability shape used by the scraper registry.
+
+<h3 id="ParsedUrl">ParsedUrl</h3>
+
+```ts
+interface ParsedUrl {
+  slug: string;
+  jobId: string | null;
+}
+```
+
+Board identity recovered from a URL, with an optional posting id. Parsing alone does not confirm existence.
+
+<h3 id="ScraperName">ScraperName</h3>
+
+```ts
+type ScraperName = keyof typeof scrapers;
+```
+
+Case-sensitive union of supported constructor names, such as `GreenhouseScraper` and `WorkdayScraper`. Individual constructors are available as properties of `scrapers`.
+
+<h3 id="scrapers">scrapers</h3>
+
+```ts
+const scrapers: {
+  /* each ScraperName maps to its constructor */
+};
+```
+
+Supported constructors keyed by scraper name. Use `new scrapers.AshbyScraper("zapier")`, or `getScraper` for a dynamic name. The [boards guide](/job-scraper/guides/boards/) lists every supported constructor and its capabilities.
+
+<Snippet file="reference" region="direct" />
+
+<h3 id="scraperNames">scraperNames</h3>
+
+```ts
+const scraperNames: ScraperName[];
+```
+
+All registered scraper names, in registry order.
+
+<h3 id="discoverableScrapers">discoverableScrapers</h3>
+
+```ts
+const discoverableScrapers: ScraperName[];
+```
+
+Names of scrapers whose board slugs can be guessed from company names. Other scrapers remain usable by URL, registry or explicit board identity.
+
+<h3 id="getScraper">getScraper</h3>
+
+```ts
+getScraper(name: string): ScraperSubclass
+```
+
+Returns a constructor for a supported name. Throws `Error` with `Unknown scraper: ...` for an unknown name.
+
+<h3 id="isScraperName">isScraperName</h3>
+
+```ts
+isScraperName(name: string): name is ScraperName
+```
+
+Type guard for supported scraper names.
+
+## Paths and miscellaneous
+
+<h3 id="dataDir">dataDir</h3>
+
+```ts
+const dataDir: string;
+```
+
+Mutable-state root: Node defaults to `~/.job-scraper`, overridden by `JOB_SCRAPER_DATA_DIR`. In browsers this is a storage identifier, not a filesystem path. See [state storage](/job-scraper/guides/state/).
+
+<h3 id="cacheDir">cacheDir</h3>
+
+```ts
+const cacheDir: string;
+```
+
+Default board-response cache directory under the data root. In browsers this is a storage identifier, not a filesystem path. See [state storage](/job-scraper/guides/state/).
+
+<h3 id="companiesFile">companiesFile</h3>
+
+```ts
+const companiesFile: string;
+```
+
+Persistent registry location under the data root. In browsers this is a storage identifier, not a filesystem path. See [state storage](/job-scraper/guides/state/).
+
+<h3 id="time">time</h3>
+
+```ts
+const time: {
+  readonly second: 1000;
+  readonly minute: number;
+  readonly hour: number;
+  readonly day: number;
+};
+```
+
+Millisecond durations: second = 1,000; minute = 60,000; hour = 3,600,000; day = 86,400,000. Useful for cache/search TTL configuration.

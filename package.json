@@ -47,7 +47,7 @@
     "lint": "prettier --check .",
     "lint-fix": "prettier --write . | grep -v ' (unchanged)' || true",
     "test": "bun test --isolate --conditions=job-scraper-source",
-    "typecheck": "tsc --noEmit && tsc --noEmit -p site",
+    "typecheck": "ASTRO_TELEMETRY_DISABLED=1 astro sync --root site && tsc --noEmit && tsc --noEmit -p site && bun run --cwd site/checker check",
     "knip": "knip",
     "check-boards": "bun --conditions=job-scraper-source src/scripts/checkBoards.ts",
     "// build": "-----------------------------",
@@ -55,16 +55,23 @@
     "build": "rm -rf dist && tsc -p tsconfig.build.json && bun run bake-version",
     "prepack": "bun run build",
     "// site": "------------------------------",
-    "site:build": "bun --conditions=job-scraper-source site/build.ts",
-    "site:dev": "bun --conditions=job-scraper-source site/build.ts --dev"
+    "site:build": "ASTRO_TELEMETRY_DISABLED=1 astro build --root site && bun --conditions=job-scraper-source site/check.ts",
+    "site:dev": "ASTRO_TELEMETRY_DISABLED=1 astro dev --root site --ignore-lock",
+    "site:preview": "ASTRO_TELEMETRY_DISABLED=1 astro preview --root site --ignore-lock"
   },
   "devDependencies": {
+    "@astrojs/markdown-remark": "^7.3.2",
+    "@astrojs/starlight": "^0.42.5",
     "@types/bun": "^1.4.2",
     "@types/node": "^22.18.0",
-    "esbuild": "^0.28.2",
+    "astro": "^7.3.7",
     "knip": "^6.40.0",
     "prettier": "^3.8.2",
+    "prettier-plugin-astro": "^1.1.0",
     "prettier-plugin-sh": "^0.18.0",
     "typescript": "^7.0.2"
-  }
+  },
+  "workspaces": [
+    "site/checker"
+  ]
 }

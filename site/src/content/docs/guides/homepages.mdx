@@ -1,0 +1,23 @@
+---
+title: Find a company homepage
+---
+
+import Snippet from '../../../components/Snippet.astro';
+
+Use [resolveHomepage](/job-scraper/reference/#resolveHomepage) for a website origin such as `https://ramp.com`, distinct from a careers board. Pass a name/URL string, or a full [Company](/job-scraper/reference/#Company) record. String input may need company resolution first.
+
+<Snippet file="reference" region="homepage" />
+
+## How candidates are checked
+
+Sources include the website declared to the board, the parent of a known careers domain, Clearbit autocomplete, Wikidata, domains guessed from the company name/slug, and optional web search. A board-declared website is trusted; other candidates are fetched and ranked by evidence such as linking back to the company’s board or naming the company. Live trusted candidates can be accepted when their pages cannot be read; guessed domains require readable evidence. Sources are best-effort, with per-source timeouts, so a failed source reduces coverage rather than failing the whole lookup.
+
+The result is an origin or `null`. A successful result is saved on an existing registry entry. A miss is remembered and retried after **30 days** or with a newer package version; a miss without search does not prevent a later search-enabled attempt. [findHomepage](/job-scraper/reference/#findHomepage) returns `{ url, source }` directly without consulting/persisting registry outcomes.
+
+## Opt into search
+
+Homepage search defaults off, independently of board search. Set `configureSearch({ homepages: true })`, Node’s `SERPAPI_HOMEPAGE_SEARCH=1`, or per-call `{ search: true }`. A key and remaining quota are still needed. Search may improve an inconclusive candidate, not just fill an empty result; a page linking back to the board settles the lookup. See [search accounting](/job-scraper/guides/search/).
+
+## Browser limits
+
+Most candidate sites cannot be read cross-origin. Browser resolution can use a board-declared website, a careers-domain parent, or an exact-name trusted lookup; it cannot establish guessed domains without readable verification. A returned homepage is best-effort identity evidence, not a guarantee of ownership.

@@ -1,0 +1,24 @@
+---
+title: Locate and reset persistent state
+---
+
+## Node state
+
+Mutable state defaults to `~/.job-scraper`, shared across projects on the machine:
+
+| Location              | Stores                                 |
+| --------------------- | -------------------------------------- |
+| `companies.json`      | Company registry and homepage outcomes |
+| `cache/`              | Board-response cache                   |
+| `search-results.json` | Remembered board-search results        |
+| `search-usage.json`   | Search quota accounting                |
+
+[dataDir](/job-scraper/reference/#dataDir), [cacheDir](/job-scraper/reference/#cacheDir) and [companiesFile](/job-scraper/reference/#companiesFile) expose the paths. Set `JOB_SCRAPER_DATA_DIR` before loading the package to move the state root. Writes use a temporary file and rename so readers do not observe a partially written file; this does not imply transactional coordination across processes.
+
+Delete `companies.json` to initialize from the seed again. In an already-running process, also drop its in-memory registry with [clearCompaniesCache](/job-scraper/reference/#clearCompaniesCache). Set `DISABLE_COMPANY_REGISTRY` to skip stored-registry reads and writes and keep the registry in memory seeded from the package.
+
+Use [clearCache](/job-scraper/reference/#clearCache) for response bodies and [clearSearchCache](/job-scraper/reference/#clearSearchCache) for remembered search results. Neither resets the company registry or search quota accounting.
+
+## Browser state
+
+The registry and search state use `localStorage`, falling back to memory when unavailable. Board responses use the Cache API and are not cached when it is unavailable. Exported paths are storage names rather than real filesystem locations. Node environment variables do not apply. Use [configuration APIs](/job-scraper/guides/browser/) for browser settings.

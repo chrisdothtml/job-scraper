@@ -1,0 +1,12 @@
+{
+  "name": "job-scraper-docs-checker",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "bun check.mjs"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.10",
+    "typescript": "^6.0.0"
+  }
+}

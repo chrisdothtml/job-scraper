@@ -34,6 +34,7 @@ export default defineConfig({
       ],
       sidebar: [
         { label: 'Home', slug: '' },
+        { label: 'Use with Agents', slug: 'agents' },
         { label: 'API reference', slug: 'reference' },
         { label: 'Guides', items: [{ autogenerate: { directory: 'guides' } }] },
       ],

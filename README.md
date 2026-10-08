@@ -15,6 +15,8 @@
 
 This package provides lightweight, reliable, http-only scrapers for the most popular job board providers. It ships with a small list of pre-mapped companies, but it learns new ones as you look them up.
 
+For coding agents, the repository includes a portable [`job-scraper` skill](./skills/job-scraper/) for listing public jobs and fetching relevant postings. See the [agent guide](https://chrisdothtml.github.io/job-scraper/agents/) for setup and CLI examples.
+
 **[Try it live in your browser](https://chrisdothtml.github.io/job-scraper/)**
 
 One benefit this package provides (in addition to reliable job board scrapers) is its ability to infer the correct job board for a company from a variety of different input formats (e.g. company name, careers homepage URL, individual job post URL).

@@ -1,9 +1,9 @@
+import { afterAll, beforeEach, test } from 'bun:test';
 import assert from 'node:assert';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import process from 'node:process';
-import { afterAll, beforeEach, test } from 'bun:test';
 
 /**
  * Runs the core against the browser platform, with in-memory stand-ins for

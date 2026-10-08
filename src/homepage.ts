@@ -1,5 +1,4 @@
-import { cachedFetch, CorsError, corsAwareFetch } from './cache.ts';
-import { pkgVersion } from './constants.ts';
+import { cachedFetch, corsAwareFetch, CorsError } from './cache.ts';
 import {
   findCompany,
   isBoardDomain,
@@ -8,6 +7,7 @@ import {
   setCompanyHomepage,
   type Company,
 } from './companies.ts';
+import { pkgVersion } from './constants.ts';
 import { resolveCompany } from './resolve.ts';
 import { scrapers } from './scrapers/index.ts';
 import { canSearch, getSearchConfig, searchForHomepage } from './search.ts';

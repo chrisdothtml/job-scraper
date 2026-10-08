@@ -1,9 +1,9 @@
+import { afterAll, beforeEach, test } from 'bun:test';
 import assert from 'node:assert';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import process from 'node:process';
-import { afterAll, beforeEach, test } from 'bun:test';
 
 // `paths.ts` reads this at import time, so it has to be set before the
 // dynamic import below, hence no static imports from the package here

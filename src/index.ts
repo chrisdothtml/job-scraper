@@ -161,8 +161,8 @@ export async function fetchJob(input: FetchJobInput | string): Promise<Job> {
 export {
   renderScrapedPosting,
   richTextToMarkdown,
-  type RenderPostingOptions,
   type RenderedPosting,
+  type RenderPostingOptions,
 } from './render.ts';
 export {
   decodeHtmlEntities,

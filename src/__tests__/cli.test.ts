@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'bun:test';
 import { runCli } from '../cli-command.ts';
-import { renderScrapedPosting, type Job, type ListedJob } from '../index.ts';
 import { pkgVersion } from '../constants.ts';
+import { renderScrapedPosting, type Job, type ListedJob } from '../index.ts';
 
 const posting: Job = {
   id: '42',
@@ -89,6 +89,8 @@ describe('CLI', () => {
       ['jobs', 'Acme', '--title'],
       ['jobs', 'Acme', '--title='],
       ['jobs', 'Acme', '--format', 'xml'],
+      ['job', 'Acme', '--id', '42', '--format', 'jsonl'],
+      ['jobs', 'Acme', '--format', 'jsonl', '--mode', 'compact'],
       ['job', 'Acme', '--id', '42', '--mode', 'other'],
       ['jobs', 'Acme', '--id', '42'],
       ['jobs', 'Acme', '--mode', 'complete'],
@@ -176,6 +178,67 @@ describe('CLI', () => {
     );
   });
 
+  test('JSONL returns one complete record per line and supports filters', async () => {
+    const result = await invoke(['jobs', 'Acme', '--format', 'jsonl']);
+    expect(result.status).toBe(0);
+    expect(result.stderr).toBe('');
+    expect(result.stdout.endsWith('\n')).toBe(true);
+    expect(
+      result.stdout
+        .trimEnd()
+        .split('\n')
+        .map((line) => JSON.parse(line))
+    ).toEqual(listings);
+    const filtered = await invoke([
+      'jobs',
+      'Acme',
+      '--format',
+      'jsonl',
+      '--title',
+      '[platform]',
+      '--location',
+      'remote us',
+    ]);
+    expect(filtered.stdout).toBe(JSON.stringify(listings[0]) + '\n');
+    expect(
+      (
+        await invoke([
+          'jobs',
+          'Acme',
+          '--format',
+          'jsonl',
+          '--title',
+          'missing',
+        ])
+      ).stdout
+    ).toBe('');
+  });
+
+  test('JSONL escapes embedded line breaks and preserves listing values', async () => {
+    const jobs = [
+      {
+        ...listings[0],
+        title: 'Engineer\n"Platform"',
+        location: 'US\r\nRemote',
+        id: '\\42',
+      },
+    ];
+    let stdout = '';
+    const status = await runCli(
+      ['jobs', 'Acme', '--format', 'jsonl'],
+      {
+        stdout: (text) => {
+          stdout += text;
+        },
+        stderr: () => {},
+      },
+      { listCompanyJobs: async () => jobs, fetchJob: async () => posting }
+    );
+    expect(status).toBe(0);
+    expect(stdout.split('\n')).toHaveLength(2);
+    expect(JSON.parse(stdout)).toEqual(jobs[0]);
+  });
+
   test('list Markdown includes every listing field', async () => {
     const result = await invoke(['jobs', 'Acme']);
     expect(result.status).toBe(0);
@@ -224,7 +287,7 @@ describe('CLI', () => {
       ...listings[0],
       id: String(index),
     }));
-    for (const format of ['json', 'markdown']) {
+    for (const format of ['json', 'jsonl', 'markdown']) {
       let stdout = '';
       const status = await runCli(
         ['jobs', 'Acme', '--format', format],
@@ -241,6 +304,13 @@ describe('CLI', () => {
       );
       expect(status).toBe(0);
       if (format === 'json') expect(JSON.parse(stdout)).toEqual(jobs);
+      else if (format === 'jsonl')
+        expect(
+          stdout
+            .trimEnd()
+            .split('\n')
+            .map((line) => JSON.parse(line))
+        ).toEqual(jobs);
       else {
         expect(stdout.match(/^## Job /gm)).toHaveLength(101);
         expect(stdout).toContain('- **ID:** 100');
@@ -278,6 +348,7 @@ describe('CLI', () => {
   test('fetch errors use stderr and a nonzero exit', async () => {
     for (const args of [
       ['jobs', 'Acme'],
+      ['jobs', 'Acme', '--format', 'jsonl'],
       ['job', 'Acme', '--id', '42'],
     ]) {
       const result = await invoke(args, true);

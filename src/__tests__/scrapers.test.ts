@@ -1,6 +1,6 @@
+import { describe, test } from 'bun:test';
 import assert from 'node:assert';
 import process from 'node:process';
-import { describe, test } from 'bun:test';
 import { seedCompanies } from '../companies.seed.ts';
 import { normalizeCompanyName } from '../companies.ts';
 import {

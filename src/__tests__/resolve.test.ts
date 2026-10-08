@@ -1,9 +1,9 @@
+import { afterAll, test } from 'bun:test';
 import assert from 'node:assert';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import process from 'node:process';
-import { afterAll, test } from 'bun:test';
 
 // `paths.ts` reads this at import time, so it precedes the dynamic import
 const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'job-scraper-resolve-'));

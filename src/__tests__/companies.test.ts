@@ -1,9 +1,9 @@
+import { afterAll, beforeEach, test } from 'bun:test';
 import assert from 'node:assert';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import process from 'node:process';
-import { afterAll, beforeEach, test } from 'bun:test';
 import { pkgVersion } from '../constants.ts';
 
 // `paths.ts` reads this at import time, so it precedes the dynamic import

@@ -1,14 +1,14 @@
 import { parseArgs } from 'node:util';
+import { pkgVersion } from './constants.ts';
 import type {
-  fetchJob,
-  listCompanyJobs,
   CompanyInput,
+  fetchJob,
   FetchJobInput,
+  listCompanyJobs,
   ListedJob,
 } from './index.ts';
-import { isScraperName } from './scrapers/index.ts';
 import { renderScrapedPosting } from './render.ts';
-import { pkgVersion } from './constants.ts';
+import { isScraperName } from './scrapers/index.ts';
 
 const HELP = `Usage:
   job-scraper jobs <company-or-board-url> [--title <text>] [--location <text>]
@@ -18,7 +18,8 @@ const HELP = `Usage:
   job-scraper job --scraper <ScraperName> --slug <slug> --id <id>
 
 Options:
-  --format <markdown|json>   Output format (default: markdown)
+  --format <markdown|json|jsonl>
+                           Output format (default: markdown; jsonl: jobs only)
   --mode <complete|compact> Job Markdown detail (default: complete)
   --title <text>            Literal case-insensitive title filter (jobs only)
   --location <text>         Literal case-insensitive location filter (jobs only)
@@ -71,6 +72,10 @@ function markdownJobs(jobs: ListedJob[]): string {
       )
       .join('\n\n') + '\n'
   );
+}
+
+function toJsonl(jobs: readonly ListedJob[]): string {
+  return jobs.map((job) => JSON.stringify(job) + '\n').join('');
 }
 
 /** Internal runner: parsing completes before any resolver/network call. */
@@ -129,8 +134,12 @@ export async function runCli(
     if (command !== 'jobs' && command !== 'job')
       throw new Error('Expected command jobs or job (see --help)');
     if (extra.length) throw new Error('Expected a single company or URL');
-    if (values.format && !['markdown', 'json'].includes(values.format))
-      throw new Error('--format must be markdown or json');
+    const formats =
+      command === 'jobs' ? ['markdown', 'json', 'jsonl'] : ['markdown', 'json'];
+    if (values.format && !formats.includes(values.format))
+      throw new Error(
+        `--format for ${command} must be ${formats.join(' or ')}`
+      );
     if (values.mode && !['complete', 'compact'].includes(values.mode))
       throw new Error('--mode must be complete or compact');
     if (command === 'jobs' && (values.id || values.mode))
@@ -175,11 +184,18 @@ export async function runCli(
           (!title || job.title.toLowerCase().includes(title)) &&
           (!location || job.location.toLowerCase().includes(location))
       );
-      output.stdout(
-        values.format === 'json'
-          ? JSON.stringify(jobs, null, 2) + '\n'
-          : markdownJobs(jobs)
-      );
+      let result: string;
+      switch (values.format) {
+        case 'json':
+          result = JSON.stringify(jobs, null, 2) + '\n';
+          break;
+        case 'jsonl':
+          result = toJsonl(jobs);
+          break;
+        default:
+          result = markdownJobs(jobs);
+      }
+      output.stdout(result);
     } else {
       const jobInput: FetchJobInput = {
         ...input,

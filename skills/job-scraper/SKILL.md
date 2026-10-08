@@ -9,18 +9,11 @@ Use the `job-scraper` CLI to list openings, narrow a list by literal title or lo
 
 ## Run the CLI
 
-After the next package publication, run the installed CLI with `npx`:
+Run the CLI with `npx` on Node.js 22 or newer:
 
 ```sh
 npx @chrisdothtml/job-scraper jobs Airbnb
 npx @chrisdothtml/job-scraper jobs Airbnb --title engineer --location remote
-```
-
-Until then, build from the repository checkout and run the CLI by its path (replace `/path/to/job-scraper` with the checkout location). This works from any current directory:
-
-```sh
-cd /path/to/job-scraper && bun run build
-node /path/to/job-scraper/dist/cli.js jobs Airbnb
 ```
 
 ## Workflow
@@ -53,6 +46,15 @@ node /path/to/job-scraper/dist/cli.js jobs Airbnb
    ```
 
 ## Output
+
+For shell filtering of listings, use `jobs --format jsonl`: each line is a complete JSON job record, and an empty listing produces no output. Save the listing once and search it locally:
+
+```sh
+npx @chrisdothtml/job-scraper jobs Airbnb --format jsonl > jobs.jsonl \
+  && grep -iF 'engineer' jobs.jsonl
+```
+
+`&&` ensures filtering runs only after successful retrieval. `grep` matches across all fields; use `--title` and `--location` for field-specific filtering. A `grep` exit code of 1 means no matches, not a retrieval failure. JSONL is available only for `jobs`.
 
 Markdown is the default. Job fetches use complete mode by default, accounting for the posting's fields, but Markdown is a readable rendering rather than byte-lossless source data. Use `--mode compact` only when a selective summary is useful; compact output can omit short text and structured fields.
 

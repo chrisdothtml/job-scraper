@@ -17,6 +17,14 @@ This package provides lightweight, reliable, http-only scrapers for the most pop
 
 For coding agents, the repository includes a portable [`job-scraper` skill](./skills/job-scraper/) for listing public jobs and fetching relevant postings. See the [agent guide](https://chrisdothtml.github.io/job-scraper/agents/) for setup and CLI examples.
 
+Install it with the [Skills CLI](https://github.com/vercel-labs/skills) and choose your agent:
+
+```sh
+npx skills add chrisdothtml/job-scraper --skill job-scraper
+```
+
+Add `--global` to make it available across projects.
+
 **[Try it live in your browser](https://chrisdothtml.github.io/job-scraper/)**
 
 One benefit this package provides (in addition to reliable job board scrapers) is its ability to infer the correct job board for a company from a variety of different input formats (e.g. company name, careers homepage URL, individual job post URL).

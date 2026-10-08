@@ -47,12 +47,15 @@
     "node": ">=22"
   },
   "scripts": {
+    "cli": "bun src/cli.ts",
     "// checks": "----------------------------",
     "lint": "prettier --check .",
     "lint-fix": "prettier --write . | grep -v ' (unchanged)' || true",
-    "test": "bun test --isolate --conditions=job-scraper-source",
     "typecheck": "ASTRO_TELEMETRY_DISABLED=1 astro sync --root site && tsc --noEmit && tsc --noEmit -p site && bun run --cwd site/checker check",
     "knip": "knip",
+    "static-checks": "bun run --sequential lint typecheck knip",
+    "// tests": "----------------------------",
+    "test": "bun test --isolate --conditions=job-scraper-source",
     "check-boards": "bun --conditions=job-scraper-source src/scripts/checkBoards.ts",
     "// build": "-----------------------------",
     "bake-version": "bun src/scripts/bakeVersion.ts",

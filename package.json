@@ -57,6 +57,7 @@
     "// tests": "----------------------------",
     "test": "bun test --isolate --conditions=job-scraper-source",
     "check-boards": "bun --conditions=job-scraper-source src/scripts/checkBoards.ts",
+    "ci": "bun run --sequential static-checks test build site:build",
     "// build": "-----------------------------",
     "bake-version": "bun src/scripts/bakeVersion.ts",
     "build": "rm -rf dist && tsc -p tsconfig.build.json && bun run bake-version && chmod +x dist/cli/index.js",

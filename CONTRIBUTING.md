@@ -97,10 +97,8 @@ Run `bun run site:dev` for editing. Run `bun run site:build` then `bun run site:
 ## Before opening a PR
 
 ```sh
-bun run lint-fix
-bun run typecheck
-bun run knip
-bun run test
+# Runs all checks that run in CI
+bun run ci
 ```
 
 ### knip

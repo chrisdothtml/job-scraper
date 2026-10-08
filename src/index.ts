@@ -157,3 +157,17 @@ export async function fetchJob(input: FetchJobInput | string): Promise<Job> {
     scraper.dispose();
   }
 }
+
+export {
+  renderScrapedPosting,
+  richTextToMarkdown,
+  type RenderPostingOptions,
+  type RenderedPosting,
+} from './render.ts';
+export {
+  decodeHtmlEntities,
+  htmlToMarkdown,
+  htmlToText,
+  looksLikeEscapedHtml,
+  looksLikeHtml,
+} from './utils/html.ts';

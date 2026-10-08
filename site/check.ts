@@ -1,16 +1,17 @@
 /** Static documentation gates: public API, examples, links, and share images. */
+import { execFileSync } from 'node:child_process';
 import {
+  lstat,
   mkdtemp,
-  readFile,
   readdir,
+  readFile,
   rm,
   stat,
   writeFile,
 } from 'node:fs/promises';
 import { join, relative, resolve } from 'node:path';
-import { execFileSync } from 'node:child_process';
-import { readSnippet } from './src/utils/snippets.ts';
 import { legacy } from './src/utils/legacy-links.ts';
+import { readSnippet } from './src/utils/snippets.ts';
 
 const root = resolve(import.meta.dirname, '..');
 const output = join(root, 'site-dist');
@@ -163,6 +164,46 @@ for (const [path, page] of pages) {
   }
 }
 
+// Links into the GitHub repo must point at paths that still exist locally, so
+// docs stay accurate after refactors. Scan sources, not built HTML, to catch
+// links inside code blocks and non-rendered files too.
+const repoLink =
+  /https:\/\/github\.com\/chrisdothtml\/job-scraper\/(?:blob|tree)\/[^/\s"'`)<>\]]+\/([^\s"'`)<>\]#?]+)/g;
+const textExtensions = ['.md', '.mdx', '.ts', '.tsx', '.astro', '.json'];
+const sourceFiles = (
+  await Promise.all(
+    textExtensions.map((extension) => files(join(root, 'site/src'), extension))
+  )
+).flat();
+let repoLinks = 0;
+for (const path of sourceFiles) {
+  for (const [url, repoPath] of (await readFile(path, 'utf8')).matchAll(
+    repoLink
+  )) {
+    repoLinks++;
+    // GitHub does not follow symlinks in blob/tree URLs, so lstat every segment.
+    let current = root;
+    let problem = '';
+    for (const segment of decodeURIComponent(repoPath!).split('/')) {
+      if (!segment) continue;
+      current = join(current, segment);
+      try {
+        if ((await lstat(current)).isSymbolicLink()) {
+          problem = `${relative(root, current)} is a symlink`;
+          break;
+        }
+      } catch {
+        problem = `no ${repoPath} locally`;
+        break;
+      }
+    }
+    if (problem)
+      failures.push(
+        `Dead repo link in ${relative(root, path)}: ${url} (${problem})`
+      );
+  }
+}
+
 // Type-check the exact rendered excerpts as standalone modules. Whole source
 // modules alone miss a region that forgot its imports or relies on other locals.
 const virtual = new Map<string, string>();
@@ -214,7 +255,7 @@ try {
 }
 
 if (failures.length)
-  throw new Error(`Documentation checks failed:\n${failures.join('\n')}`);
+  throw new Error(`Documentation checks failed:\n\n${failures.join('\n\n')}`);
 console.log(
-  `Docs checked: ${exports.length} public exports, ${pages.size} pages, ${virtual.size} standalone snippets.`
+  `Docs checked: ${exports.length} public exports, ${pages.size} pages, ${virtual.size} standalone snippets, ${repoLinks} repo links.`
 );

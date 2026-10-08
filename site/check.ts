@@ -9,8 +9,8 @@ import {
 } from 'node:fs/promises';
 import { join, relative, resolve } from 'node:path';
 import { execFileSync } from 'node:child_process';
-import { readSnippet } from './snippets.ts';
-import { legacy } from './legacy-links.ts';
+import { readSnippet } from './src/utils/snippets.ts';
+import { legacy } from './src/utils/legacy-links.ts';
 
 const root = resolve(import.meta.dirname, '..');
 const output = join(root, 'site-dist');

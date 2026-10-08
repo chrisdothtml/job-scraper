@@ -1,7 +1,7 @@
 import { readFile } from 'node:fs/promises';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 
-const siteDir = import.meta.dirname;
+const siteDir = resolve(import.meta.dirname, '../..');
 
 export async function readSnippet(
   file: string,

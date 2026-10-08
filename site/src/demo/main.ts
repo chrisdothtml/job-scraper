@@ -10,11 +10,11 @@ import {
   UnresolvedCompanyError,
   type Job,
   type ListedJob,
-} from '../src/index.ts';
-import { descriptionHtml } from './description.ts';
-import { addCopyButton, enhanceTabs } from './docs.ts';
-import { highlightTs } from './highlight.ts';
-import { sanitizeHtml } from './sanitize.ts';
+} from '../../../src/index.ts';
+import { descriptionHtml } from './utils/description.ts';
+import { addCopyButton, enhanceTabs } from './utils/docs.ts';
+import { highlightTs } from './utils/highlight.ts';
+import { sanitizeHtml } from './utils/sanitize.ts';
 
 type Mode = 'company' | 'job';
 

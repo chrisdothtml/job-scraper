@@ -1,7 +1,7 @@
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
 import { unified } from '@astrojs/markdown-remark';
-import publicApiHeadings from './headings.mjs';
+import publicApiHeadings from './src/utils/headings.mjs';
 
 export default defineConfig({
   site: 'https://chrisdothtml.github.io',

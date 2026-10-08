@@ -3,6 +3,8 @@ title: Use with Agents
 description: Give coding agents a portable skill for finding and fetching public job postings.
 ---
 
+import Snippet from '../../components/Snippet.astro';
+
 The repository includes a portable [`job-scraper` skill](https://github.com/chrisdothtml/job-scraper/tree/main/skills/job-scraper) for agents that can read `SKILL.md` instructions. It works with Claude Code, Codex, and other compatible agents. From the repository root, copy it into either skill directory:
 
 ```sh
@@ -45,3 +47,13 @@ npx @chrisdothtml/job-scraper job 'https://job-boards.greenhouse.io/airbnb/jobs/
 ```
 
 See the [`fetchJob` API](/job-scraper/reference/#fetchJob), [`listCompanyJobs` API](/job-scraper/reference/#listCompanyJobs), and [posting renderer documentation](/job-scraper/reference/#renderScrapedPosting) for the underlying package APIs.
+
+## Fetch many postings efficiently
+
+For a few jobs, the CLI is convenient. When fetching many jobs from one company, use the package API so you can reuse one scraper and its in-memory listing cache. Resolve the company once, fetch its listing once, filter titles and locations before fetching full postings, then fetch matching jobs sequentially:
+
+<Snippet file="agents-bulk" />
+
+Some boards include full posting content in their listing and the scraper may reuse it from the instance cache; this is not guaranteed for every board. Keep requests sequential by default instead of creating an unbounded `Promise.all`. For several companies, create a separate scraper per company and dispose each one in `finally`. For a large batch, redirect script output to a local file and review only the postings needed for the request to keep results out of agent context.
+
+The example renders complete Markdown by default. This accounts for the fetched job fields but does not preserve the original content byte-for-byte. Keep the returned job or its `content` string when exact source fidelity matters. See the [supported boards guide](/job-scraper/guides/boards/#reuse-a-scraper-for-bulk-work) for the underlying scraper reuse behavior.

@@ -8,7 +8,7 @@
         "src/platform/{node,browser}.ts",
         "src/**/*.test.ts",
         "src/scripts/*.ts",
-        "site/main.ts",
+        "site/src/demo/main.ts",
         "site/snippets/*.ts",
         "site/src/content/docs/**/*.mdx",
         "site/src/components/*.astro",

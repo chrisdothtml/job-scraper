@@ -18,7 +18,7 @@ const PAGE_SIZE = 20;
 
 // Workday tenants are split across pods (e.g. wd1, wd5) and each posts jobs
 // under a site slug (e.g. "Ext", "careers") that varies per company and
-// can't be derived from the tenant name, so the companySlug in companies.ts
+// can't be derived from the tenant name, so the stored company slug
 // must be the dot-joined `tenant.pod.site`, e.g. "autodesk.wd1.Ext".
 export default class WorkdayScraper extends Scraper {
   private baseUrl: string;

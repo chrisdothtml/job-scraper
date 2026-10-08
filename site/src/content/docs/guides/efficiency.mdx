@@ -1,0 +1,11 @@
+---
+title: Fetch many postings efficiently
+---
+
+import Snippet from '../../../components/Snippet.astro';
+
+Some boards (Ashby, Lever, Shopify) only hand over full postings through their jobs list endpoint. You don't need to know which: [Scraper.getJob](/job-scraper/reference/#Scraper) fetches the list behind the scenes when its cache is cold, so a job is always fetchable at will.
+
+However, for bulk work, that strategy can be wasteful. [listCompanyJobs](/job-scraper/reference/#listCompanyJobs) and [fetchJob](/job-scraper/reference/#fetchJob) each build a scraper instance and dispose of it before returning, which drops whatever it cached (notably the job list some boards need to answer getJobContent from). Fine for one lookup, but when fetching many jobs from the same company, it's more efficient to hold onto a scraper instance yourself instead:
+
+<Snippet file="agents-bulk" />

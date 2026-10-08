@@ -8,7 +8,7 @@
     <a href="https://github.com/chrisdothtml/job-scraper/actions/workflows/scraper-health.yml"><img alt="Scraper health" src="https://github.com/chrisdothtml/job-scraper/actions/workflows/scraper-health.yml/badge.svg"></a>
     <a href="./LICENSE"><img alt="License" src="https://img.shields.io/npm/l/@chrisdothtml/job-scraper"></a>
   </p>
-  <p><a href="https://chrisdothtml.github.io/job-scraper/">Live demo</a> · <a href="https://chrisdothtml.github.io/job-scraper/#docs">Docs</a> · <a href="https://www.npmjs.com/package/@chrisdothtml/job-scraper">npm</a></p>
+  <p><a href="https://chrisdothtml.github.io/job-scraper/#try-it-live">Live demo</a> · <a href="https://chrisdothtml.github.io/job-scraper/guides/">Guides/Recipes</a> · <a href="https://www.npmjs.com/package/@chrisdothtml/job-scraper">npm</a></p>
 </div>
 
 > List jobs for 15k+ companies for free. Runs locally; no headless browsers or API tokens.
@@ -86,5 +86,3 @@ Install it with the [Skills CLI](https://github.com/vercel-labs/skills) and choo
 ```sh
 npx skills add chrisdothtml/job-scraper --skill job-scraper
 ```
-
-Add `--global` to make it available across projects.

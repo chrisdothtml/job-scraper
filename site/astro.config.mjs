@@ -1,6 +1,6 @@
-import { defineConfig } from 'astro/config';
-import starlight from '@astrojs/starlight';
 import { unified } from '@astrojs/markdown-remark';
+import starlight from '@astrojs/starlight';
+import { defineConfig } from 'astro/config';
 import publicApiHeadings from './src/utils/headings.mjs';
 
 export default defineConfig({
@@ -36,6 +36,7 @@ export default defineConfig({
         { label: 'Home', slug: '' },
         { label: 'Use with Agents', slug: 'agents' },
         { label: 'API reference', slug: 'reference' },
+        { label: 'CLI reference', slug: 'cli' },
         { label: 'Guides', items: [{ autogenerate: { directory: 'guides' } }] },
       ],
       customCss: ['./src/styles/theme.css', './src/styles/demo.css'],

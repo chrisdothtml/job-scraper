@@ -1,14 +1,10 @@
 import { parseArgs } from 'node:util';
-import { pkgVersion } from './constants.ts';
-import type {
-  CompanyInput,
-  fetchJob,
-  FetchJobInput,
-  listCompanyJobs,
-  ListedJob,
-} from './index.ts';
-import { renderScrapedPosting } from './render.ts';
-import { isScraperName } from './scrapers/index.ts';
+import { pkgVersion } from '../constants.ts';
+import type { CompanyInput } from '../discovery/resolve.ts';
+import type { fetchJob, FetchJobInput, listCompanyJobs } from '../jobs.ts';
+import type { ListedJob } from '../scrapers/Scraper.ts';
+import { renderScrapedPosting } from '../rendering/posting.ts';
+import { isScraperName } from '../scrapers/index.ts';
 
 const HELP = `Usage:
   job-scraper jobs <company-or-board-url> [--title <text>] [--location <text>]
@@ -175,7 +171,7 @@ export async function runCli(
         : url
           ? { url: target }
           : { company: target };
-    const api = dependencies ?? (await import('./index.ts'));
+    const api = dependencies ?? (await import('../jobs.ts'));
     if (command === 'jobs') {
       const title = values.title?.toLowerCase();
       const location = values.location?.toLowerCase();

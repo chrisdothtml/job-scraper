@@ -1,13 +1,13 @@
 import { platform } from '#platform';
-import { seedCompanies } from './companies.seed.ts';
-import { pkgVersion } from './constants.ts';
-import { companiesFile } from './paths.ts';
+import { seedCompanies } from './seed.ts';
+import { pkgVersion } from '../constants.ts';
+import { companiesFile } from '../paths.ts';
 import {
   isScraperName,
   scraperNames,
   scrapers,
   type ScraperName,
-} from './scrapers/index.ts';
+} from '../scrapers/index.ts';
 
 export interface Company {
   /** Display name, as a human would write it */

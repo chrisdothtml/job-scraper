@@ -1,4 +1,4 @@
-import { CorsError } from './cache.ts';
+import { CorsError } from '../cache.ts';
 import {
   addCompanyDomain,
   findCompany,
@@ -10,7 +10,7 @@ import {
   slugMatchesCompany,
   type Company,
   type StoredCompany,
-} from './companies.ts';
+} from '../companies/registry.ts';
 import {
   discoverableScrapers,
   getScraper,
@@ -18,12 +18,12 @@ import {
   scraperNames,
   scrapers,
   type ScraperName,
-} from './scrapers/index.ts';
+} from '../scrapers/index.ts';
 import {
   BoardShapeError,
   type Scraper,
   type ScraperSubclass,
-} from './scrapers/Scraper.ts';
+} from '../scrapers/Scraper.ts';
 import { searchForBoards } from './search.ts';
 import { sniffPage } from './sniff.ts';
 

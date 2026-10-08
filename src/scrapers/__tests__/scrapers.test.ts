@@ -1,23 +1,19 @@
 import { describe, test } from 'bun:test';
 import assert from 'node:assert';
 import process from 'node:process';
-import { seedCompanies } from '../companies.seed.ts';
-import { normalizeCompanyName } from '../companies.ts';
+import { seedCompanies } from '../../companies/seed.ts';
+import { normalizeCompanyName } from '../../companies/registry.ts';
 import {
   boardHints,
   companyNameCandidates,
   companyNameFromUrl,
   jobIdFromUrl,
   parseJobUrl,
-} from '../resolve.ts';
-import { getScraper, scraperNames, scrapers } from '../scrapers/index.ts';
-import {
-  JobNotFoundError,
-  Scraper,
-  type ListedJob,
-} from '../scrapers/Scraper.ts';
-import { configureSearch, getSearchConfig } from '../search.ts';
-import { findBoardsInPage, findNamesInPage } from '../sniff.ts';
+} from '../../discovery/resolve.ts';
+import { getScraper, scraperNames, scrapers } from '../index.ts';
+import { JobNotFoundError, Scraper, type ListedJob } from '../Scraper.ts';
+import { configureSearch, getSearchConfig } from '../../discovery/search.ts';
+import { findBoardsInPage, findNamesInPage } from '../../discovery/sniff.ts';
 import { testScraper } from './testScraper.ts';
 
 // hand-picked so that every scraper is exercised at least once

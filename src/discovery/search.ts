@@ -1,9 +1,12 @@
 import { platform } from '#platform';
-import { corsAwareFetch } from './cache.ts';
-import { normalizeCompanyName, slugMatchesCompany } from './companies.ts';
-import { scraperNames, scrapers, type ScraperName } from './scrapers/index.ts';
-import { type ParsedUrl } from './scrapers/Scraper.ts';
-import { applyOverrides, time } from './utils/misc.ts';
+import { corsAwareFetch } from '../cache.ts';
+import {
+  normalizeCompanyName,
+  slugMatchesCompany,
+} from '../companies/registry.ts';
+import { scraperNames, scrapers, type ScraperName } from '../scrapers/index.ts';
+import { type ParsedUrl } from '../scrapers/Scraper.ts';
+import { applyOverrides, time } from '../utils/misc.ts';
 
 export interface SearchConfig {
   /**

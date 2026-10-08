@@ -1,7 +1,7 @@
-import { cachedFetch, CorsError } from './cache.ts';
-import { scraperNames, scrapers, type ScraperName } from './scrapers/index.ts';
-import { type ParsedUrl } from './scrapers/Scraper.ts';
-import { time } from './utils/misc.ts';
+import { cachedFetch, CorsError } from '../cache.ts';
+import { scraperNames, scrapers, type ScraperName } from '../scrapers/index.ts';
+import { type ParsedUrl } from '../scrapers/Scraper.ts';
+import { time } from '../utils/misc.ts';
 
 export interface SniffedBoard extends ParsedUrl {
   scraper: ScraperName;

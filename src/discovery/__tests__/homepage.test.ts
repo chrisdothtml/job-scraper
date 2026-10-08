@@ -16,15 +16,15 @@ for (const key of ['SERP_API_TOKEN', 'SERPAPI_KEY', 'SERPAPI_API_KEY']) {
   delete process.env[key];
 }
 
-const { configureCache } = await import('../cache.ts');
+const { configureCache } = await import('../../cache.ts');
 const { configureSearch } = await import('../search.ts');
-const { pkgVersion } = await import('../constants.ts');
+const { pkgVersion } = await import('../../constants.ts');
 const {
   clearCompaniesCache,
   findCompany,
   registerCompany,
   setCompanyHomepage,
-} = await import('../companies.ts');
+} = await import('../../companies/registry.ts');
 const { findHomepage, resolveHomepage } = await import('../homepage.ts');
 
 const realFetch = globalThis.fetch;

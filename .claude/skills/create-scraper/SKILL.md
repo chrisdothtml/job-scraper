@@ -178,7 +178,7 @@ If Steps 2–4 turn up no usable JSON API and the board can't be scraped via pla
 ## Step 7: Register the scraper and any companies
 
 1. Add the class to the `scrapers` object in `src/scrapers/index.ts`. The object's order is the order discovery probes boards in, so put widely-used boards near the top.
-2. Add any companies you confirmed to `src/companies.seed.ts` as `{ name, scraper, slug }`, plus `domains` if they run a careers site of their own (`pinterestcareers.com`), never a shared board host, keeping the list sorted by name. Only the seed file needs editing. The registry in `~/.job-scraper/companies.json` reconciles itself against the seed on the next version bump, keeping the user's own discoveries.
+2. Add any companies you confirmed to `src/companies/seed.ts` as `{ name, scraper, slug }`, plus `domains` if they run a careers site of their own (`pinterestcareers.com`), never a shared board host, keeping the list sorted by name. Only the seed file needs editing. The registry in `~/.job-scraper/companies.json` reconciles itself against the seed on the next version bump, keeping the user's own discoveries.
 
 ## Step 8: Verify
 

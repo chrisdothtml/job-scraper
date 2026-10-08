@@ -5,7 +5,7 @@ import {
   htmlToText,
   looksLikeEscapedHtml,
   looksLikeHtml,
-} from '../utils/html.ts';
+} from '../html.ts';
 
 describe('decodeHtmlEntities', () => {
   test('named + numeric entities', () => {

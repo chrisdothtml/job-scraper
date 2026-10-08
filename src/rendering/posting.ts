@@ -2,7 +2,7 @@
  * Runtime-independent posting rendering. Complete mode accounts for every
  * parsed JSON field; compact mode selects and deduplicates posting prose.
  */
-import type { Job } from './scrapers/Scraper.ts';
+import type { Job } from '../scrapers/Scraper.ts';
 import {
   decodeHtmlEntities,
   htmlToMarkdown,

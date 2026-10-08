@@ -21,8 +21,8 @@ If these came back empty or with an error, `gh` may not be authenticated: ask th
 
 The `Scraper health` workflow (`.github/workflows/scraper-health.yml`) runs daily and on `workflow_dispatch`. It has two steps that each run even if the other fails:
 
-1. **Scraper deep check**: `bun run test src/__tests__/scrapers.test.ts -t 'Ensure Scrapers work'`. For one hand-picked company per scraper class (`TEST_COMPANIES`), it lists jobs, fetches the first job's content, and checks the job shape via `testScraper` (`src/__tests__/testScraper.ts`). A failure here usually means a **scraper** broke.
-2. **Board sweep**: `bun run check-boards` (`src/scripts/checkBoards.ts`). It lists jobs for every company in `src/companies.seed.ts`. Output lines:
+1. **Scraper deep check**: `bun run test src/scrapers/__tests__/scrapers.test.ts -t 'Ensure Scrapers work'`. For one hand-picked company per scraper class (`TEST_COMPANIES`), it lists jobs, fetches the first job's content, and checks the job shape via `testScraper` (`src/scrapers/__tests__/testScraper.ts`). A failure here usually means a **scraper** broke.
+2. **Board sweep**: `bun run check-boards` (`src/scripts/checkBoards.ts`). It lists jobs for every company in `src/companies/seed.ts`. Output lines:
    - `FAIL <name> (<scraper>, <slug>): Threw: ...`: the board errored after one retry, or returned a non-array. This fails the run.
    - `WARN <name> (<scraper>, <slug>): No real jobs listed`: the board answered but had no real postings, even on the full list. This is a warning only.
    - `N/M boards OK, X failed, Y with no jobs`
@@ -40,7 +40,7 @@ The failed run above can be stale:
 - If a newer run in **Recent runs** succeeded, the failure is already fixed. Only its warnings still matter.
 - If a newer run failed, it is shown above, since the lines come from the most recent failure.
 - If the fix is in **Local commits not yet pushed**, the answer is "push".
-- Check each finding against the current `src/companies.seed.ts`, and against **Known warnings** at the bottom.
+- Check each finding against the current `src/companies/seed.ts`, and against **Known warnings** at the bottom.
 
 For a specific run, or for warnings from a green run, grep that run's log the same way. Never read the whole log into context; it's long.
 
@@ -53,7 +53,7 @@ gh run view < id > --log | grep -E "FAIL |WARN |boards OK|\(fail\)|error:" | cut
 Reproduce locally first, scoped to the companies involved:
 
 ```sh
-TEST_COMPANIES="Amplitude, Postman" bun run test src/__tests__/scrapers.test.ts -t 'Ensure Scrapers work' > "$TMPDIR/t.log" 2>&1
+TEST_COMPANIES="Amplitude, Postman" bun run test src/scrapers/__tests__/scrapers.test.ts -t 'Ensure Scrapers work' > "$TMPDIR/t.log" 2>&1
 grep -E "\((pass|fail)\)|^ *[0-9]+ (pass|fail)|error" "$TMPDIR/t.log"
 ```
 
@@ -81,7 +81,7 @@ Then check the company's own careers page. Use `curl -sL -w '%{url_effective}'`,
 ```sh
 curl -sL -A 'Mozilla/5.0' "https://example.com/careers" -o "$TMPDIR/p.html"
 bun --conditions=job-scraper-source -e "
-  import { findBoardsInPage } from './src/sniff.ts';
+  import { findBoardsInPage } from './src/discovery/sniff.ts';
   console.log(findBoardsInPage(await Bun.file('$TMPDIR/p.html').text()));
 "
 ```
@@ -99,12 +99,12 @@ Watch for these:
 
 ## Step 4: Fix
 
-**Seed data** (`src/companies.seed.ts`):
+**Seed data** (`src/companies/seed.ts`):
 
 - To move a company, change `scraper` and `slug`, plus `homepage` / `domains` if they changed.
 - For a Workday or other URL-derived slug, get it from a real posting URL:
   ```sh
-  bun --conditions=job-scraper-source -e "import { parseJobUrl } from './src/resolve.ts'; console.log(parseJobUrl('<posting url>'))"
+  bun --conditions=job-scraper-source -e "import { parseJobUrl } from './src/discovery/resolve.ts'; console.log(parseJobUrl('<posting url>'))"
   ```
 - Remove a company only when no live board can be found. Confirm removals and renames with the user first; moving a company to a board you verified with real postings doesn't need confirmation.
 - Keep the list sorted by name. `bun run test` checks that names stay unique once normalized.
@@ -123,7 +123,7 @@ If a failure is a `429`, a timeout or a `5xx` and passes when re-run locally:
 ## Step 6: Verify and hand off
 
 ```sh
-TEST_COMPANIES="<changed companies>" bun run test src/__tests__/scrapers.test.ts -t 'Ensure Scrapers work'
+TEST_COMPANIES="<changed companies>" bun run test src/scrapers/__tests__/scrapers.test.ts -t 'Ensure Scrapers work'
 bun run test && bun run lint && bun run typecheck
 ```
 

@@ -1,4 +1,4 @@
-import { type Company } from './companies.ts';
+import { type Company } from './registry.ts';
 
 /**
  * The companies this package already knows how to scrape. On first run this

@@ -1,4 +1,4 @@
-import { cachedFetch, corsAwareFetch, CorsError } from './cache.ts';
+import { cachedFetch, corsAwareFetch, CorsError } from '../cache.ts';
 import {
   findCompany,
   isBoardDomain,
@@ -6,17 +6,17 @@ import {
   normalizeDomain,
   setCompanyHomepage,
   type Company,
-} from './companies.ts';
-import { pkgVersion } from './constants.ts';
+} from '../companies/registry.ts';
+import { pkgVersion } from '../constants.ts';
 import { resolveCompany } from './resolve.ts';
-import { scrapers } from './scrapers/index.ts';
+import { scrapers } from '../scrapers/index.ts';
 import { canSearch, getSearchConfig, searchForHomepage } from './search.ts';
 import {
   BROWSER_USER_AGENT,
   findBoardsInPage,
   findNamesInPage,
 } from './sniff.ts';
-import { time } from './utils/misc.ts';
+import { time } from '../utils/misc.ts';
 
 export interface HomepageOptions {
   /**

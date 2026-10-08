@@ -4,7 +4,7 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import process from 'node:process';
-import { pkgVersion } from '../constants.ts';
+import { pkgVersion } from '../../constants.ts';
 
 // `paths.ts` reads this at import time, so it precedes the dynamic import
 const tmpDir = await fs.mkdtemp(
@@ -26,8 +26,8 @@ const {
   mergeRegistry,
   registerCompany,
   slugMatchesCompany,
-} = await import('../companies.ts');
-const { seedCompanies } = await import('../companies.seed.ts');
+} = await import('../registry.ts');
+const { seedCompanies } = await import('../seed.ts');
 
 const registryFile = path.join(tmpDir, 'companies.json');
 

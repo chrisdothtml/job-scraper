@@ -57,20 +57,21 @@ const storage = new MemoryStorage();
 scope.localStorage = storage;
 scope.caches = new MemoryCacheStorage();
 
-const { platform } = await import('../platform/node.ts');
-const { platform: browser } = await import('../platform/browser.ts');
+const { platform } = await import('../node.ts');
+const { platform: browser } = await import('../browser.ts');
 Object.defineProperties(platform, Object.getOwnPropertyDescriptors(browser));
 
 const { cachedFetch, clearCache, configureCache, CorsError } =
-  await import('../cache.ts');
+  await import('../../cache.ts');
 const { clearCompaniesCache, findCompany, listCompanies, registerCompany } =
-  await import('../companies.ts');
-const { companiesFile } = await import('../paths.ts');
+  await import('../../companies/registry.ts');
+const { companiesFile } = await import('../../paths.ts');
 const { createScraper, resolveCompany, UnresolvedCompanyError } =
-  await import('../resolve.ts');
-const { canSearch, getSearchConfig } = await import('../search.ts');
-const { seedCompanies } = await import('../companies.seed.ts');
-const { time } = await import('../utils/misc.ts');
+  await import('../../discovery/resolve.ts');
+const { canSearch, getSearchConfig } =
+  await import('../../discovery/search.ts');
+const { seedCompanies } = await import('../../companies/seed.ts');
+const { time } = await import('../../utils/misc.ts');
 
 const realFetch = globalThis.fetch;
 

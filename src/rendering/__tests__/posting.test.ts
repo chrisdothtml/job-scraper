@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { renderScrapedPosting as render, type Job } from '../index.ts';
+import { renderScrapedPosting as render, type Job } from '../../index.ts';
 
 function renderScrapedPosting(job: Job, postingUrl?: string) {
   return render(job, { mode: 'compact', postingUrl });

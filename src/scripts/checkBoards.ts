@@ -19,7 +19,7 @@ process.env.JOB_SCRAPER_DATA_DIR ||= fs.mkdtempSync(
   path.join(os.tmpdir(), 'job-scraper-boards-')
 );
 
-const { seedCompanies } = await import('../companies.seed.ts');
+const { seedCompanies } = await import('../companies/seed.ts');
 const { getScraper } = await import('../scrapers/index.ts');
 const { isPlaceholderJob } = await import('../scrapers/Scraper.ts');
 

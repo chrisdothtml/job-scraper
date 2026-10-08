@@ -1,5 +1,5 @@
 import assert from 'node:assert';
-import { type Scraper } from '../scrapers/Scraper.ts';
+import { type Scraper } from '../Scraper.ts';
 
 /**
  * Smoke-tests a scraper against its live board: lists jobs, then fetches the

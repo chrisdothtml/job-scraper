@@ -11,5 +11,5 @@
     // runtime-agnostic, so `Bun` globals fail to typecheck here
     "types": ["node"]
   },
-  "exclude": ["dist", "node_modules", "src/__tests__", "src/scripts"]
+  "exclude": ["dist", "node_modules", "src/**/__tests__/**", "src/scripts"]
 }

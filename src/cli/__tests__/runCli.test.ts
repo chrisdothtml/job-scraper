@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'bun:test';
-import { runCli } from '../cli-command.ts';
-import { pkgVersion } from '../constants.ts';
-import { renderScrapedPosting, type Job, type ListedJob } from '../index.ts';
+import { runCli } from '../runCli.ts';
+import { pkgVersion } from '../../constants.ts';
+import { renderScrapedPosting, type Job, type ListedJob } from '../../index.ts';
 
 const posting: Job = {
   id: '42',

@@ -7,18 +7,23 @@
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "editor.formatOnSave": true,
   "files.exclude": {
+    ".codegraph/": true,
     ".playwright-mcp/": true,
     ".remember/": true,
-    "node_modules/": true,
+    "**/.astro/": true,
+    "**/node_modules/": true,
     // files that likely won't be touched ever and just pollute files list
+    ".mcp.json": true,
     ".prettierignore": true,
     ".prettierrc.cjs": true,
     ".shellcheckrc": true,
+    "bun.lock": true,
     "bunfig.toml": true,
+    "dist": true,
     "knip.json": true,
     "LICENSE": true,
-    "tsconfig.tsbuildinfo": true,
-    "bun.lock": true
+    "site-dist": true,
+    "tsconfig.tsbuildinfo": true
   },
   // make sure TS auto-imports have the file extension (required for node)
   "js/ts.preferences.importModuleSpecifierEnding": "js",

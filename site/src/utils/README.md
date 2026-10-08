@@ -9,6 +9,8 @@ separate from the browser demo's owner-local helpers in `../demo/utils/`.
   [`legacy-links.ts`](./legacy-links.ts): redirect old documentation anchors.
 - [`headings.mjs`](./headings.mjs): preserve explicit public API heading IDs
   in the Astro table of contents.
+- [`share-images.ts`](./share-images.ts): render branded share images at build
+  time from each page's Open Graph metadata.
 
 Keep site-wide build/browser utilities here; code used only by the live demo
 belongs in `../demo/`.

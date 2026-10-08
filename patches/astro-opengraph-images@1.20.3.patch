@@ -1,0 +1,120 @@
+diff --git a/dist/hook.js b/dist/hook.js
+index 1009c1b4c3f9513742d5e1b3e510c302cf1de6e9..05b44c440bb572672ac1fbe529da4a6fd94776c0 100644
+--- a/dist/hook.js
++++ b/dist/hook.js
+@@ -4,12 +4,12 @@ import { getFilePath } from "./util.js";
+ import { fileURLToPath } from "node:url";
+ import * as jsdom from "jsdom";
+ import path from "node:path";
+-export async function buildDoneHook({ logger, pages, options, dir, render, filter, pathFilter, }) {
++export async function buildDoneHook({ logger, pages, options, dir, render, filter, pathFilter, base = "/", }) {
+     logger.info("Generating Open Graph images");
+-    const promises = pages.map((page) => handlePage({ page, options, render, dir, logger, filter, pathFilter }));
++    const promises = pages.map((page) => handlePage({ page, options, render, dir, logger, filter, pathFilter, base }));
+     await Promise.all(promises);
+ }
+-async function handlePage({ page, options, render, dir, logger, filter, pathFilter, }) {
++async function handlePage({ page, options, render, dir, logger, filter, pathFilter, base, }) {
+     if (pathFilter) {
+         const shouldRender = await pathFilter(page);
+         if (!shouldRender) {
+@@ -69,7 +69,7 @@ async function handlePage({ page, options, render, dir, logger, filter, pathFilt
+     // convert the image path to a URL, decode URL-encoded characters, and remove the leading slash
+     const imageUrl = decodeURIComponent(new URL(pageDetails.image).pathname.slice(1));
+     // check that the og:image property matches the sitePath
+-    if (imageUrl !== relativePngFile) {
++    if (imageUrl !== base.slice(1) + relativePngFile) {
+         throw new Error(`The og:image property in ${htmlFile} (${imageUrl}) does not match the generated image (${relativePngFile}).`);
+     }
+     if (options.verbose) {
+diff --git a/dist/integration.js b/dist/integration.js
+index 5381e75e59ae4978df1688bed17ab7e1e3229ec6..eb6dfe598b8fb73677973a23f28025e6094eacad 100644
+--- a/dist/integration.js
++++ b/dist/integration.js
+@@ -6,12 +6,17 @@ const defaults = {
+ };
+ export function astroOpenGraphImages({ options, render, filter, pathFilter, }) {
+     const optionsWithDefaults = { ...defaults, ...options };
+-    return {
++    let base = "/";
++  return {
+         name: "astro-opengraph-images",
+         hooks: {
++      "astro:config:done": ({ config }) => {
++        base = config.base.replace(/\/?$/, "/");
++      },
+             "astro:build:done": async (entry) => {
+                 return buildDoneHook({
+                     ...entry,
++          base,
+                     options: optionsWithDefaults,
+                     render,
+                     filter,
+diff --git a/src/hook.ts b/src/hook.ts
+index bf62b0ad0492626057709ea434fe12cdf4b6eb16..4adbde427e712709276f3ecacb9aa8fd3c86e5fc 100644
+--- a/src/hook.ts
++++ b/src/hook.ts
+@@ -22,7 +22,9 @@ export async function buildDoneHook({
+   render,
+   filter,
+   pathFilter,
++  base = "/",
+ }: AstroBuildDoneHookInput & {
++  base?: string;
+   options: IntegrationOptions;
+   render: RenderFunction;
+   filter: FilterFunction | undefined;
+@@ -30,12 +32,13 @@ export async function buildDoneHook({
+ }) {
+   logger.info("Generating Open Graph images");
+   const promises = pages.map((page) =>
+-    handlePage({ page, options, render, dir, logger, filter, pathFilter }),
++    handlePage({ page, options, render, dir, logger, filter, pathFilter, base }),
+   );
+   await Promise.all(promises);
+ }
+ 
+ type HandlePageInput = {
++  base: string;
+   page: Page;
+   options: IntegrationOptions;
+   render: RenderFunction;
+@@ -53,6 +56,7 @@ async function handlePage({
+   logger,
+   filter,
+   pathFilter,
++  base,
+ }: HandlePageInput) {
+   if (pathFilter) {
+     const shouldRender = await pathFilter(page);
+@@ -126,7 +130,7 @@ async function handlePage({
+   );
+ 
+   // check that the og:image property matches the sitePath
+-  if (imageUrl !== relativePngFile) {
++  if (imageUrl !== base.slice(1) + relativePngFile) {
+     throw new Error(
+       `The og:image property in ${htmlFile} (${imageUrl}) does not match the generated image (${relativePngFile}).`,
+     );
+diff --git a/src/integration.ts b/src/integration.ts
+index 7fd57ac8f6f5988905cc1734cdb49351e8268bc2..c0165b62df66f7d9d4eccd7b121b0f2d26b6a770 100644
+--- a/src/integration.ts
++++ b/src/integration.ts
+@@ -21,12 +21,17 @@ export function astroOpenGraphImages({
+ }: IntegrationInput): AstroIntegration {
+   const optionsWithDefaults: IntegrationOptions = { ...defaults, ...options };
+ 
++  let base = "/";
+   return {
+     name: "astro-opengraph-images",
+     hooks: {
++      "astro:config:done": ({ config }) => {
++        base = config.base.replace(/\/?$/, "/");
++      },
+       "astro:build:done": async (entry: AstroBuildDoneHookInput) => {
+         return buildDoneHook({
+           ...entry,
++          base,
+           options: optionsWithDefaults,
+           render,
+           filter,

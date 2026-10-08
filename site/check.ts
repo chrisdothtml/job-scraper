@@ -1,4 +1,4 @@
-/** Static documentation gates: public API, complete examples, local links. */
+/** Static documentation gates: public API, examples, links, and share images. */
 import {
   mkdtemp,
   readFile,
@@ -86,6 +86,50 @@ for (const [old, route] of Object.entries(legacy)) {
 }
 
 for (const [path, page] of pages) {
+  const metadata = new Map<string, string[]>();
+  for (const [tag] of page.html.matchAll(/<meta\b[^>]*>/g)) {
+    const key = /\b(?:property|name)="([^"]+)"/.exec(tag)?.[1];
+    const value = /\bcontent="([^"]*)"/.exec(tag)?.[1];
+    if (key && value !== undefined) {
+      metadata.set(key, [...(metadata.get(key) ?? []), value]);
+    }
+  }
+  if (path !== join(output, '404.html')) {
+    const imagePath = path.replace(/\.html$/, '.png');
+    const imageUrl = new URL(
+      base + relative(output, imagePath).replaceAll('\\', '/'),
+      'https://chrisdothtml.github.io'
+    ).href;
+    for (const [key, expected] of [
+      ['og:image', imageUrl],
+      ['twitter:image', imageUrl],
+      ['og:image:width', '1200'],
+      ['og:image:height', '630'],
+      ['og:image:type', 'image/png'],
+      ['twitter:card', 'summary_large_image'],
+    ]) {
+      const values = metadata.get(key!);
+      if (values?.length !== 1 || values[0] !== expected) {
+        failures.push(`Invalid ${key} in ${relative(output, path)}`);
+      }
+    }
+    try {
+      const png = await readFile(imagePath);
+      if (
+        !png
+          .subarray(0, 8)
+          .equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10])) ||
+        png.readUInt32BE(16) !== 1200 ||
+        png.readUInt32BE(20) !== 630
+      ) {
+        failures.push(`Invalid share image: ${relative(output, imagePath)}`);
+      }
+    } catch {
+      failures.push(`Missing share image: ${relative(output, imagePath)}`);
+    }
+  } else if (metadata.has('og:image') || metadata.has('twitter:image')) {
+    failures.push('404 advertises an ungenerated share image');
+  }
   const url = new URL(base + relative(output, path), 'https://docs.invalid');
   for (const [, raw] of page.html.matchAll(/\b(?:href|src)="([^"]+)"/g)) {
     const target = new URL(raw!.replaceAll('&amp;', '&'), url);

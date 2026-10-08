@@ -3,3 +3,4 @@ dist
 node_modules
 site-dist
 site/.astro
+bun.lock

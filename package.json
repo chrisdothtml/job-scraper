@@ -53,11 +53,11 @@
     "lint-fix": "prettier --write . | grep -v ' (unchanged)' || true",
     "typecheck": "ASTRO_TELEMETRY_DISABLED=1 astro sync --root site && tsc --noEmit && tsc --noEmit -p site && bun run --cwd site/checker check",
     "knip": "knip",
-    "static-checks": "bun run --sequential lint typecheck knip",
+    "static-checks": "bun run --parallel lint typecheck knip",
     "// tests": "----------------------------",
     "test": "bun test --isolate --conditions=job-scraper-source",
     "check-boards": "bun --conditions=job-scraper-source src/scripts/checkBoards.ts",
-    "ci": "bun run --sequential static-checks test build site:build",
+    "ci": "bun run --parallel static-checks test build site:build",
     "// build": "-----------------------------",
     "bake-version": "bun src/scripts/bakeVersion.ts",
     "build": "rm -rf dist && tsc -p tsconfig.build.json && bun run bake-version && chmod +x dist/cli/index.js",
@@ -72,14 +72,20 @@
     "@astrojs/starlight": "^0.42.5",
     "@types/bun": "^1.4.2",
     "@types/node": "^22.18.0",
+    "@types/react": "^19.3.0",
     "astro": "^7.3.7",
+    "astro-opengraph-images": "1.20.3",
     "knip": "^6.40.0",
     "prettier": "^3.8.2",
     "prettier-plugin-astro": "^1.1.0",
     "prettier-plugin-sh": "^0.18.0",
+    "react": "^19.3.0",
     "typescript": "^7.0.2"
   },
   "workspaces": [
     "site/checker"
-  ]
+  ],
+  "patchedDependencies": {
+    "astro-opengraph-images@1.20.3": "patches/astro-opengraph-images@1.20.3.patch"
+  }
 }

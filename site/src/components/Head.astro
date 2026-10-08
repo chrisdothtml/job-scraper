@@ -1,0 +1,22 @@
+---
+import DefaultHead from '@astrojs/starlight/components/Head.astro';
+import { getImagePath } from 'astro-opengraph-images/util.js';
+
+const { entry, head } = Astro.locals.starlightRoute;
+const image = getImagePath({ url: Astro.url, site: Astro.site });
+const title = head.find((tag) => tag.attrs?.property === 'og:title')?.attrs
+  ?.content;
+---
+
+<DefaultHead />
+{entry.id !== '404' && (
+  <>
+    <meta property="og:image" content={image} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:alt" content={`job-scraper — ${title}`} />
+    <meta name="twitter:image" content={image} />
+    <meta name="twitter:image:alt" content={`job-scraper — ${title}`} />
+  </>
+)}

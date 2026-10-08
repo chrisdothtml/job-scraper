@@ -10,4 +10,4 @@ settings.local.json
 site-dist
 TODO.md
 tsconfig.tsbuildinfo
-.claude/progress
+.*/progress

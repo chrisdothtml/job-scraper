@@ -5,6 +5,7 @@
   "workspaces": {
     ".": {
       "entry": [
+        "src/cli.ts",
         "src/platform/{node,browser}.ts",
         "src/**/*.test.ts",
         "src/scripts/*.ts",

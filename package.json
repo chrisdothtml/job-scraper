@@ -37,7 +37,7 @@
   "types": "./dist/index.d.ts",
   "main": "./dist/index.js",
   "bin": {
-    "job-scraper": "./dist/cli.js"
+    "job-scraper": "./dist/cli/index.js"
   },
   "files": [
     "dist",
@@ -47,7 +47,7 @@
     "node": ">=22"
   },
   "scripts": {
-    "cli": "bun src/cli.ts",
+    "cli": "bun src/cli/index.ts",
     "// checks": "----------------------------",
     "lint": "prettier --check .",
     "lint-fix": "prettier --write . | grep -v ' (unchanged)' || true",
@@ -59,7 +59,7 @@
     "check-boards": "bun --conditions=job-scraper-source src/scripts/checkBoards.ts",
     "// build": "-----------------------------",
     "bake-version": "bun src/scripts/bakeVersion.ts",
-    "build": "rm -rf dist && tsc -p tsconfig.build.json && bun run bake-version && chmod +x dist/cli.js",
+    "build": "rm -rf dist && tsc -p tsconfig.build.json && bun run bake-version && chmod +x dist/cli/index.js",
     "prepack": "bun run build",
     "// site": "------------------------------",
     "site:build": "ASTRO_TELEMETRY_DISABLED=1 astro build --root site && bun --conditions=job-scraper-source site/check.ts",

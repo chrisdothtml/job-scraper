@@ -25,7 +25,7 @@ bun run typecheck
 ## Adding a scraper
 
 See the [source architecture map](./src/README.md) for module ownership and
-the [site map](./site/README.md) for documentation-site ownership.
+the [site map](./docs/README.md) for documentation-site ownership.
 
 Run the [`create-scraper`](./.claude/skills/create-scraper/SKILL.md) skill with a careers page URL. It explores the page with a browser, finds the JSON API behind it, and writes the subclass.
 
@@ -88,11 +88,11 @@ A daily workflow (`.github/workflows/scraper-health.yml`) runs these live scrape
 
 ## Docs
 
-The [docs site](https://chrisdothtml.github.io/job-scraper/) uses Astro and Starlight. Edit `site/src/content/docs/`: `index.mdx` is the home page, `reference/index.mdx` covers the public API, and `guides/` holds topic guides. Every public export, including types, has an exact, case-sensitive reference anchor.
+The [docs site](https://chrisdothtml.github.io/job-scraper/) uses Astro and Starlight. Edit `docs/src/content/docs/`: `index.mdx` is the home page, `reference/index.mdx` covers the public API, and `guides/` holds topic guides. Every public export, including types, has an exact, case-sensitive reference anchor.
 
-Code examples live in `site/snippets/` as checked TypeScript modules. Use `<Snippet file="api" region="list-name" />` to display a complete file or named `// #region`; repeated regions are joined, including their imports. `bun run typecheck` checks the modules and Astro components. Astro currently needs a TypeScript 6 language-service engine, so the private `site/checker` package isolates that engine for the standard Astro checker; the library and snippets keep the TypeScript 7 compiler. `bun run site:build` also checks extracted examples independently, public-export coverage, and built internal links and anchors.
+Code examples live in `docs/snippets/` as checked TypeScript modules. Use `<Snippet file="api" region="list-name" />` to display a complete file or named `// #region`; repeated regions are joined, including their imports. `bun run typecheck` checks the modules and Astro components. Astro currently needs a TypeScript 6 language-service engine, so the private `docs/checker` package isolates that engine for the standard Astro checker; the library and snippets keep the TypeScript 7 compiler. `bun run docs:build` also checks extracted examples independently, public-export coverage, and built internal links and anchors.
 
-Run `bun run site:dev` for editing. Run `bun run site:build` then `bun run site:preview` to check the static site with its search index. Both serve under `/job-scraper/`. Output goes to `site-dist/` for GitHub Pages; framework dependencies are development-only.
+Run `bun run docs:dev` for editing. Run `bun run docs:build` then `bun run docs:preview` to check the static site with its search index. Both serve under `/job-scraper/`. Output goes to `docs-dist/` for GitHub Pages; framework dependencies are development-only.
 
 ## Before opening a PR
 
@@ -109,7 +109,7 @@ Finds unused files, exports and dependencies with [knip](https://knip.dev), conf
 Usage: bun run knip
 ```
 
-Code that's only reached dynamically (the `#platform` targets, dev scripts, site snippets) is listed under `entry` in `knip.json`; add new dynamically loaded paths there rather than silencing them. To keep a specific unused export on purpose, tag it with a `/** @knipignore */` JSDoc comment. Everything exported from `src/index.ts` is public API and counts as used.
+Code that's only reached dynamically (the `#platform` targets, dev scripts, docs snippets) is listed under `entry` in `knip.json`; add new dynamically loaded paths there rather than silencing them. To keep a specific unused export on purpose, tag it with a `/** @knipignore */` JSDoc comment. Everything exported from `src/index.ts` is public API and counts as used.
 
 ## Releasing
 

@@ -13,16 +13,15 @@
     "**/.astro/": true,
     "**/node_modules/": true,
     // files that likely won't be touched ever and just pollute files list
+    "*dist*/": true,
     ".mcp.json": true,
     ".prettierignore": true,
     ".prettierrc.cjs": true,
     ".shellcheckrc": true,
     "bun.lock": true,
     "bunfig.toml": true,
-    "dist": true,
     "knip.json": true,
     "LICENSE": true,
-    "site-dist": true,
     "tsconfig.tsbuildinfo": true
   },
   // make sure TS auto-imports have the file extension (required for node)

@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - site/**
+      - docs/**
       - src/**
       - tsconfig.json
       - package.json
@@ -31,12 +31,12 @@ jobs:
       - uses: oven-sh/setup-bun@v2
 
       - run: bun install --frozen-lockfile
-      - run: bun run site:build
+      - run: bun run docs:build
 
       - uses: actions/configure-pages@v6
       - uses: actions/upload-pages-artifact@v5
         with:
-          path: site-dist
+          path: docs-dist
 
   deploy:
     needs: build

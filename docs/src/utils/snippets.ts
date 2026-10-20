@@ -1,7 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 
-const siteDir = resolve(import.meta.dirname, '../..');
+const docsDir = resolve(import.meta.dirname, '../..');
 
 export async function readSnippet(
   file: string,
@@ -10,7 +10,7 @@ export async function readSnippet(
   if (!/^[\w-]+$/.test(file))
     throw new Error(`Invalid snippet basename: ${file}`);
   const source = await readFile(
-    join(siteDir, 'snippets', `${file}.ts`),
+    join(docsDir, 'snippets', `${file}.ts`),
     'utf8'
   );
   return extractSnippet(source, region);

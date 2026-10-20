@@ -8,24 +8,24 @@
         "src/platform/{node,browser}.ts",
         "src/**/*.test.ts",
         "src/scripts/*.ts",
-        "site/src/demo/main.ts",
-        "site/snippets/*.ts",
-        "site/src/content/docs/**/*.mdx",
-        "site/src/components/*.astro",
-        "site/astro.config.mjs",
-        "site/src/content.config.ts"
+        "docs/src/demo/main.ts",
+        "docs/snippets/*.ts",
+        "docs/src/content/docs/**/*.mdx",
+        "docs/src/components/*.astro",
+        "docs/astro.config.mjs",
+        "docs/src/content.config.ts"
       ],
       "project": [
         "src/**/*.ts",
-        "site/**/*.ts",
-        "site/**/*.astro",
-        "site/**/*.mdx",
-        "site/**/*.mjs",
-        "!site/checker/**"
+        "docs/**/*.ts",
+        "docs/**/*.astro",
+        "docs/**/*.mdx",
+        "docs/**/*.mjs",
+        "!docs/checker/**"
       ],
       "ignoreDependencies": ["@astrojs/check"]
     },
-    "site/checker": {
+    "docs/checker": {
       "entry": [],
       "project": ["*.mjs"]
     }

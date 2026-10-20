@@ -14,7 +14,7 @@ import { legacy } from './src/utils/legacy-links.ts';
 import { readSnippet } from './src/utils/snippets.ts';
 
 const root = resolve(import.meta.dirname, '..');
-const output = join(root, 'site-dist');
+const output = join(root, 'docs-dist');
 const base = '/job-scraper/';
 const failures: string[] = [];
 
@@ -172,7 +172,7 @@ const repoLink =
 const textExtensions = ['.md', '.mdx', '.ts', '.tsx', '.astro', '.json'];
 const sourceFiles = (
   await Promise.all(
-    textExtensions.map((extension) => files(join(root, 'site/src'), extension))
+    textExtensions.map((extension) => files(join(root, 'docs/src'), extension))
   )
 ).flat();
 let repoLinks = 0;
@@ -207,7 +207,7 @@ for (const path of sourceFiles) {
 // Type-check the exact rendered excerpts as standalone modules. Whole source
 // modules alone miss a region that forgot its imports or relies on other locals.
 const virtual = new Map<string, string>();
-for (const page of await files(join(root, 'site/src/content/docs'), '.mdx')) {
+for (const page of await files(join(root, 'docs/src/content/docs'), '.mdx')) {
   const source = await readFile(page, 'utf8');
   for (const [tag] of source.matchAll(/<Snippet\s[^>]*\/>/g)) {
     const file = /\bfile="([^"]+)"/.exec(tag)?.[1];
@@ -215,13 +215,13 @@ for (const page of await files(join(root, 'site/src/content/docs'), '.mdx')) {
     if (!file) throw new Error(`Snippet without a literal file prop: ${page}`);
     const key = join(
       root,
-      'site/snippets',
+      'docs/snippets',
       `__checked-${file}-${region ?? 'whole'}.ts`
     );
     virtual.set(key, await readSnippet(file, region));
   }
 }
-const scratch = await mkdtemp(join(root, 'site/.astro/checked-'));
+const scratch = await mkdtemp(join(root, 'docs/.astro/checked-'));
 try {
   const checkedFiles: string[] = [];
   for (const [path, code] of virtual) {
@@ -233,7 +233,7 @@ try {
   await writeFile(
     configPath,
     JSON.stringify({
-      extends: join(root, 'site/tsconfig.json'),
+      extends: join(root, 'docs/tsconfig.json'),
       files: checkedFiles,
       include: [],
       exclude: [],

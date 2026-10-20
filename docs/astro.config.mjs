@@ -10,7 +10,7 @@ export default defineConfig({
   site: 'https://chrisdothtml.github.io',
   base: '/job-scraper/',
   output: 'static',
-  outDir: '../site-dist',
+  outDir: '../docs-dist',
   trailingSlash: 'always',
   markdown: {
     processor: unified({ remarkPlugins: [publicApiHeadings] }),

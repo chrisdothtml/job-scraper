@@ -4,10 +4,8 @@
 .env
 .playwright-mcp
 .remember
-dist
+*dist*/
 node_modules
 settings.local.json
-site-dist
-site/.astro
 TODO.md
 tsconfig.tsbuildinfo

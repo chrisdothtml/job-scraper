@@ -51,21 +51,21 @@
     "// checks": "----------------------------",
     "lint": "prettier --check .",
     "lint-fix": "prettier --write . | grep -v ' (unchanged)' || true",
-    "typecheck": "ASTRO_TELEMETRY_DISABLED=1 astro sync --root site && tsc --noEmit && tsc --noEmit -p site && bun run --cwd site/checker check",
+    "typecheck": "ASTRO_TELEMETRY_DISABLED=1 astro sync --root docs && tsc --noEmit && tsc --noEmit -p docs && bun run --cwd docs/checker check",
     "knip": "knip",
     "static-checks": "bun run --parallel lint typecheck knip",
     "// tests": "----------------------------",
     "test": "bun test --isolate --conditions=job-scraper-source",
     "check-boards": "bun --conditions=job-scraper-source src/scripts/checkBoards.ts",
-    "ci": "bun run --parallel static-checks test build site:build",
+    "ci": "bun run --parallel static-checks test build docs:build",
     "// build": "-----------------------------",
     "bake-version": "bun src/scripts/bakeVersion.ts",
     "build": "rm -rf dist && tsc -p tsconfig.build.json && bun run bake-version && chmod +x dist/cli/index.js",
     "prepack": "bun run build",
-    "// site": "------------------------------",
-    "site:build": "ASTRO_TELEMETRY_DISABLED=1 astro build --root site && bun --conditions=job-scraper-source site/check.ts",
-    "site:dev": "ASTRO_TELEMETRY_DISABLED=1 astro dev --root site --ignore-lock",
-    "site:preview": "ASTRO_TELEMETRY_DISABLED=1 astro preview --root site --ignore-lock"
+    "// docs": "------------------------------",
+    "docs:build": "ASTRO_TELEMETRY_DISABLED=1 astro build --root docs && bun --conditions=job-scraper-source docs/check.ts",
+    "docs:dev": "ASTRO_TELEMETRY_DISABLED=1 astro dev --root docs --ignore-lock",
+    "docs:preview": "ASTRO_TELEMETRY_DISABLED=1 astro preview --root docs --ignore-lock"
   },
   "devDependencies": {
     "@astrojs/markdown-remark": "^7.3.2",
@@ -83,7 +83,7 @@
     "typescript": "^7.0.2"
   },
   "workspaces": [
-    "site/checker"
+    "docs/checker"
   ],
   "patchedDependencies": {
     "astro-opengraph-images@1.20.3": "patches/astro-opengraph-images@1.20.3.patch"

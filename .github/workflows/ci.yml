@@ -39,6 +39,6 @@ jobs:
       - name: Build
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
         run: bun run build
-      - name: Build site
+      - name: Build docs
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
-        run: bun run site:build
+        run: bun run docs:build

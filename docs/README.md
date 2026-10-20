@@ -18,18 +18,14 @@ recognizable because the root package scripts and tooling invoke them directly.
   styles, fonts, and brand assets.
 
 `bun run docs:build` also generates a 1200×630 PNG alongside each documentation
-page (excluding the 404). The `astro-opengraph-images` integration renders the
-page's Open Graph title and description using IBM Plex Sans and the site colors.
-`src/components/Head.astro` extends Starlight's default metadata with absolute
-Open Graph and Twitter image URLs; `check.ts` verifies those URLs and PNG sizes.
-React is a build-only dependency, with no runtime fetches. All font files are
-vendored in `src/assets/fonts/`: browsers use WOFF2, while Satori uses static WOFF
-files because it does not support WOFF2. See that directory's README for sources.
-
-`patches/astro-opengraph-images@1.20.3.patch` fixes upstream image-path validation
-to account for Astro's deployment base. Bun applies it on installation; retain
-it until an upstream version correctly supports `/job-scraper/` and passes the
-site build gates.
+page (excluding the 404). The static endpoint `src/pages/[...slug]/index.png.ts`
+renders each page's title and description (falling back to the site description)
+with Satori and resvg via `src/utils/share-images.ts`, using IBM Plex Sans and the
+site colors. `src/components/Head.astro` extends Starlight's default metadata with
+absolute Open Graph and Twitter image URLs; `check.ts` verifies those URLs and PNG
+sizes. All font files are vendored in `src/assets/fonts/`: browsers use WOFF2,
+while Satori uses static WOFF files because it does not support WOFF2. See that
+directory's README for sources.
 
 Keep browser-demo behavior under `src/demo/` and docs/build helpers under
 `src/utils/`. When editing snippets, preserve their standalone typechecking and

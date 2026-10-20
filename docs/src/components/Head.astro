@@ -1,9 +1,10 @@
 ---
 import DefaultHead from '@astrojs/starlight/components/Head.astro';
-import { getImagePath } from 'astro-opengraph-images/util.js';
 
 const { entry, head } = Astro.locals.starlightRoute;
-const image = getImagePath({ url: Astro.url, site: Astro.site });
+// Matches the PNG emitted by src/pages/[...slug]/index.png.ts.
+const image = new URL('index.png', new URL(Astro.url.pathname, Astro.site))
+  .href;
 const title = head.find((tag) => tag.attrs?.property === 'og:title')?.attrs
   ?.content;
 ---

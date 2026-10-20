@@ -12,6 +12,7 @@
         "docs/snippets/*.ts",
         "docs/src/content/docs/**/*.mdx",
         "docs/src/components/*.astro",
+        "docs/src/pages/**/*.ts",
         "docs/astro.config.mjs",
         "docs/src/content.config.ts"
       ],
@@ -21,7 +22,8 @@
         "docs/**/*.astro",
         "docs/**/*.mdx",
         "docs/**/*.mjs",
-        "!docs/checker/**"
+        "!docs/checker/**",
+        "!docs/.astro/**"
       ],
       "ignoreDependencies": ["@astrojs/check"]
     },

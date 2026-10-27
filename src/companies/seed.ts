@@ -624,12 +624,6 @@ export const seedCompanies: Company[] = [
     homepage: 'https://www.harvey.ai',
   },
   {
-    name: 'Hyperspell',
-    scraper: 'AshbyScraper',
-    slug: 'hyperspell',
-    homepage: 'https://hyperspell.com',
-  },
-  {
     name: 'ICON',
     scraper: 'WorkdayScraper',
     slug: 'icon.wd3.broadbean_external',

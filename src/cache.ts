@@ -114,7 +114,6 @@ interface CacheContext {
 }
 
 type Fetch = typeof fetch;
-// FIXME: implement rate limit header/status-code detection
 export async function cachedFetch(
   this: CacheContext | void,
   ...args: Parameters<Fetch>
@@ -155,14 +154,136 @@ export async function cachedFetch(
   );
 }
 
+/** Rate-limited retries a single request gets before its 429 is surfaced */
+const MAX_RETRIES = 3;
+/**
+ * The longest a single request will wait out rate limiting, in total. A board
+ * asking for longer than this won't recover in any useful time, so its 429
+ * is surfaced instead.
+ */
+const MAX_RATE_LIMIT_WAIT = 30 * time.second;
+
+/** When each rate-limited host may be hit again (epoch ms), keyed by host */
+const hostResumeAt = new Map<string, number>();
+
 /**
  * `fetch`, except that in browsers a request that never got a response
- * becomes a `CorsError`. Everything that goes over the network should come
- * through here, so a blocked board is always told apart from a missing one.
+ * becomes a `CorsError`, and that rate limiting is waited out rather than
+ * surfaced. Everything that goes over the network should come through here,
+ * so a blocked board is always told apart from a missing one, and a
+ * throttled host is paused for every caller, not just the one that hit it.
  */
 export async function corsAwareFetch(
   ...args: Parameters<Fetch>
 ): ReturnType<Fetch> {
+  const [input, init] = args;
+  const url = requestUrl(input);
+  const host = URL.canParse(url) ? new URL(url).host : url;
+  const signal =
+    init?.signal ?? (input instanceof Request ? input.signal : undefined);
+  let waited = 0;
+
+  for (let attempt = 0; ; attempt++) {
+    const pause = (hostResumeAt.get(host) ?? 0) - Date.now();
+    if (pause > 0) await sleep(pause, signal);
+
+    // a Request's body can only be read once, so each attempt gets a copy
+    const res = await networkFetch(
+      (input instanceof Request ? input.clone() : input) as typeof input,
+      init
+    );
+    const wait = rateLimitWait(res, attempt);
+    if (wait === null) return res;
+
+    const resumeAt = Date.now() + wait;
+    if (res.ok) {
+      // the quota is spent, but this response still counts
+      hostResumeAt.set(host, Math.max(hostResumeAt.get(host) ?? 0, resumeAt));
+      return res;
+    }
+    if (attempt >= MAX_RETRIES || waited + wait > MAX_RATE_LIMIT_WAIT) {
+      return res;
+    }
+
+    hostResumeAt.set(host, Math.max(hostResumeAt.get(host) ?? 0, resumeAt));
+    waited += wait;
+    await res.body?.cancel();
+  }
+}
+
+/**
+ * How long to hold off before the next request to this response's host, or
+ * null when it isn't rate limited. A 429 is always retried (backing off
+ * exponentially when the board doesn't say for how long); a 503 only when it
+ * says when to come back, since otherwise it's as likely an outage. A
+ * successful response that reports its quota as spent pauses the host until
+ * the quota resets.
+ */
+function rateLimitWait(res: Response, attempt: number): number | null {
+  const told = readRateLimitDelay(res.headers);
+
+  if (res.status === 429) {
+    return told ?? time.second * 2 ** attempt * (1 + Math.random() / 4);
+  }
+  if (res.status === 503) return told;
+  if (res.ok && quotaSpent(res.headers)) return told;
+  return null;
+}
+
+/**
+ * The delay a response asks for, in ms, from `Retry-After` or else from the
+ * quota reset it reports (`RateLimit`, `RateLimit-Reset`, `X-RateLimit-Reset`).
+ * In browsers, these are only readable when the board exposes them via CORS.
+ */
+function readRateLimitDelay(headers: Headers): number | null {
+  const retryAfter = headers.get('retry-after')?.trim();
+  if (retryAfter) {
+    if (/^\d+$/.test(retryAfter)) return Number(retryAfter) * time.second;
+    const date = Date.parse(retryAfter);
+    if (!Number.isNaN(date)) return Math.max(0, date - Date.now());
+  }
+
+  // structured `RateLimit: "default";r=0;t=30` (IETF draft), `t` in seconds
+  const structured = headers.get('ratelimit')?.match(/(?:^|;)\s*t=(\d+)/);
+  if (structured) return Number(structured[1]) * time.second;
+
+  const reset = Number(
+    headers.get('ratelimit-reset') ?? headers.get('x-ratelimit-reset') ?? NaN
+  );
+  if (!Number.isFinite(reset) || reset < 0) return null;
+  // boards disagree on units: GitHub sends an epoch timestamp, most send
+  // seconds from now
+  if (reset > 1e12) return Math.max(0, reset - Date.now());
+  if (reset > 1e9) return Math.max(0, reset * time.second - Date.now());
+  return reset * time.second;
+}
+
+function quotaSpent(headers: Headers): boolean {
+  const remaining =
+    headers.get('ratelimit')?.match(/(?:^|;)\s*r=(\d+)/)?.[1] ??
+    headers.get('ratelimit-remaining') ??
+    headers.get('x-ratelimit-remaining');
+  return remaining?.trim() === '0';
+}
+
+/** Resolves after `ms`, or rejects as soon as `signal` aborts */
+function sleep(ms: number, signal?: AbortSignal | null): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (signal?.aborted) return reject(signal.reason);
+    const onAbort = () => {
+      clearTimeout(timer);
+      reject(signal!.reason);
+    };
+    const timer = setTimeout(() => {
+      signal?.removeEventListener('abort', onAbort);
+      resolve();
+    }, ms);
+    signal?.addEventListener('abort', onAbort, { once: true });
+  });
+}
+
+/** A single network round trip, translating a browser's CORS block */
+async function networkFetch(...args: Parameters<Fetch>): ReturnType<Fetch> {
   try {
     return await fetch(...args);
   } catch (err) {

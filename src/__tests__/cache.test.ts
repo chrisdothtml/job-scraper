@@ -11,8 +11,14 @@ process.env.JOB_SCRAPER_DATA_DIR = tmpDir;
 delete process.env.JOB_SCRAPER_CACHE;
 delete process.env.JOB_SCRAPER_CACHE_TTL;
 
-const { cachedFetch, clearCache, configureCache, CorsError, getCacheConfig } =
-  await import('../cache.ts');
+const {
+  cachedFetch,
+  clearCache,
+  configureCache,
+  CorsError,
+  getCacheConfig,
+  HttpError,
+} = await import('../cache.ts');
 const { time } = await import('../utils.ts');
 
 const realFetch = globalThis.fetch;
@@ -143,5 +149,98 @@ test('Node never reports a network failure as a CorsError', async () => {
   await assert.rejects(
     () => cachedFetch('https://example.com/offline'),
     (err) => err instanceof TypeError && !(err instanceof CorsError)
+  );
+});
+
+/** Stubs the network with a queue of responses, one per call */
+function stubResponses(...responses: (() => Response)[]) {
+  const state = { calls: 0, at: [] as number[] };
+  globalThis.fetch = (async () => {
+    state.at.push(Date.now());
+    return responses[Math.min(state.calls++, responses.length - 1)]!();
+  }) as unknown as typeof fetch;
+  return state;
+}
+
+const tooMany = (headers?: ResponseInit['headers']) => () =>
+  new Response('slow down', {
+    status: 429,
+    statusText: 'Too Many Requests',
+    headers,
+  });
+const ok = (headers?: ResponseInit['headers']) => () =>
+  new Response('hello', { status: 200, headers });
+
+test('a 429 is retried once the board says to come back', async () => {
+  const net = stubResponses(tooMany({ 'Retry-After': '0' }), ok());
+
+  const res = await cachedFetch('https://retry-after.example.com/jobs');
+
+  assert.equal(await res.text(), 'hello');
+  assert.equal(net.calls, 2);
+});
+
+test('a 429 without guidance backs off before retrying', async () => {
+  const net = stubResponses(tooMany(), ok());
+
+  await cachedFetch('https://backoff.example.com/jobs');
+
+  assert.equal(net.calls, 2);
+  assert.ok(net.at[1]! - net.at[0]! >= time.second);
+});
+
+test('a 429 asking for too long a wait is surfaced, not waited out', async () => {
+  const net = stubResponses(tooMany({ 'Retry-After': '3600' }), ok());
+
+  await assert.rejects(
+    () => cachedFetch('https://long-wait.example.com/jobs'),
+    (err) => err instanceof HttpError && err.status === 429
+  );
+  assert.equal(net.calls, 1);
+});
+
+test('a persistent 429 gives up after a few retries', async () => {
+  const net = stubResponses(tooMany({ 'Retry-After': '0' }));
+
+  await assert.rejects(
+    () => cachedFetch('https://persistent.example.com/jobs'),
+    (err) => err instanceof HttpError && err.status === 429
+  );
+  assert.equal(net.calls, 4);
+});
+
+test('a 503 is only retried when it says when to come back', async () => {
+  const net = stubResponses(
+    () =>
+      new Response('down', { status: 503, headers: { 'Retry-After': '0' } }),
+    () => new Response('down', { status: 503 })
+  );
+
+  await assert.rejects(() => cachedFetch('https://outage.example.com/jobs'));
+  assert.equal(net.calls, 2);
+});
+
+test('a spent quota pauses the host until it resets', async () => {
+  const net = stubResponses(
+    ok({ 'X-RateLimit-Remaining': '0', 'X-RateLimit-Reset': '1' }),
+    ok()
+  );
+
+  await cachedFetch('https://quota.example.com/a');
+  await cachedFetch('https://quota.example.com/b');
+
+  assert.equal(net.calls, 2);
+  assert.ok(net.at[1]! - net.at[0]! >= time.second - 50);
+});
+
+test('aborting cancels a rate-limit wait', async () => {
+  stubResponses(tooMany({ 'Retry-After': '20' }));
+
+  await assert.rejects(
+    () =>
+      cachedFetch('https://abort.example.com/jobs', {
+        signal: AbortSignal.timeout(50),
+      }),
+    (err) => err instanceof DOMException && err.name === 'TimeoutError'
   );
 });

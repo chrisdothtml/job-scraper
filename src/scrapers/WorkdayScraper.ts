@@ -3,8 +3,9 @@ import { time } from '../utils.ts';
 import { Scraper, type ListedJob, type ParsedUrl } from './Scraper.ts';
 
 interface WorkdayJobPosting {
-  title: string;
-  externalPath: string;
+  // both missing on stub postings that carry only a requisition id
+  title?: string;
+  externalPath?: string;
   locationsText?: string;
   bulletFields?: string[];
 }
@@ -78,14 +79,25 @@ export default class WorkdayScraper extends Scraper {
 
       total = res.total;
       jobs.push(
-        ...res.jobPostings.map((job) => ({
-          id: job.externalPath,
-          url: `${this.deeplinkUrl}${job.externalPath}`,
-          title: job.title,
-          // some tenants omit `locationsText`; the last bullet field is
-          // consistently the most specific location in that case
-          location: job.locationsText ?? job.bulletFields?.at(-1) ?? '',
-        }))
+        ...res.jobPostings
+          // stubs (only a requisition id in `bulletFields`) have no page to
+          // link to or fetch, so there is nothing to list
+          .filter(
+            (
+              job
+            ): job is WorkdayJobPosting & {
+              title: string;
+              externalPath: string;
+            } => Boolean(job.title && job.externalPath)
+          )
+          .map((job) => ({
+            id: job.externalPath,
+            url: `${this.deeplinkUrl}${job.externalPath}`,
+            title: job.title,
+            // some tenants omit `locationsText`; the last bullet field is
+            // consistently the most specific location in that case
+            location: job.locationsText ?? job.bulletFields?.at(-1) ?? '',
+          }))
       );
 
       if (testing) break;

@@ -745,16 +745,16 @@ export const seedCompanies: Company[] = [
     homepage: 'https://www.millerknoll.com',
   },
   {
+    name: 'Mintive',
+    scraper: 'AshbyScraper',
+    slug: 'mintive',
+    homepage: 'https://www.mintive.com',
+  },
+  {
     name: 'Mintlify',
     scraper: 'AshbyScraper',
     slug: 'mintlify',
     homepage: 'https://mintlify.com',
-  },
-  {
-    name: 'MintMCP',
-    scraper: 'AshbyScraper',
-    slug: 'mintmcp',
-    homepage: 'https://www.mintmcp.com',
   },
   {
     name: 'Miro',

@@ -1268,7 +1268,7 @@ export const seedCompanies: Company[] = [
   },
   {
     name: 'Webflow',
-    scraper: 'GreenhouseScraper',
+    scraper: 'AshbyScraper',
     slug: 'webflow',
     homepage: 'https://webflow.com',
   },

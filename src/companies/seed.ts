@@ -169,8 +169,8 @@ export const seedCompanies: Company[] = [
   },
   {
     name: 'Browserbase',
-    scraper: 'AshbyScraper',
-    slug: 'browserbase',
+    scraper: 'GreenhouseScraper',
+    slug: 'browserbaseinc',
     homepage: 'https://www.browserbase.com',
   },
   {

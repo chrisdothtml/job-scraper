@@ -51,47 +51,33 @@ export default class ShopifyScraper extends Scraper {
 
   async getJobsList(testing = false): Promise<ListedJob[]> {
     const html = await cachedFetch
-      .call({ cache: !testing, cacheTTL: time.day }, `${BASE_URL}/careers`)
+      .call({ cache: !testing, cacheTTL: time.day }, `${BASE_URL}/careers/jobs`)
       .then((r) => r.text());
 
     const arr = parseTurboStreamArray(html);
 
-    const jpwjIdx = arr.findIndex((v) => v === 'jobPostingsWithJobs');
-    if (jpwjIdx === -1)
-      throw new Error('Could not find jobPostingsWithJobs in page data');
+    // The job list is the array stored right after the "roles" key
+    const rolesIdx = arr.findIndex(
+      (v, i) => v === 'roles' && Array.isArray(arr[i + 1])
+    );
+    if (rolesIdx === -1) throw new Error('Could not find roles in page data');
 
-    const jobIndices = arr[jpwjIdx + 1] as number[];
+    const jobIndices = arr[rolesIdx + 1] as number[];
     const limit = testing ? 1 : jobIndices.length;
     const jobs: ListedJob[] = [];
 
     for (let i = 0; i < limit; i++) {
-      const jobEntry = arr[jobIndices[i]] as Record<string, number>;
-
-      // Find the jobPosting field within the entry
-      let jpIdx = -1;
-      for (const [kStr, vIdx] of Object.entries(jobEntry) as [
-        string,
-        number,
-      ][]) {
-        if (arr[parseInt(kStr.slice(1))] === 'jobPosting') {
-          jpIdx = vIdx;
-          break;
-        }
-      }
-      if (jpIdx === -1) continue;
-
-      const jp = decodeStreamObj(arr, arr[jpIdx] as Record<string, number>);
-      const locationName = jp.locationName as string | null;
-      const workplaceType = jp.workplaceType as string | null;
+      const jp = decodeStreamObj(
+        arr,
+        arr[jobIndices[i]] as Record<string, number>
+      );
       const id = jp.id as string;
+      const location = (jp.location as string | null) ?? '';
 
-      const location = [workplaceType, locationName]
-        .filter(Boolean)
-        .join(' - ');
       this.jobPostingsById.set(id, { ...jp, location });
       jobs.push({
         id,
-        url: `${BASE_URL}/careers/x_${jp.id}`,
+        url: this.jobUrl(id),
         title: jp.title as string,
         location,
       });
@@ -107,7 +93,6 @@ export default class ShopifyScraper extends Scraper {
       .then((r) => r.text());
 
     const arr = parseTurboStreamArray(html);
-    // In the flat array, jobPosting fields appear in order: id, title, descriptionPlain, ...
     const descIdx = arr.findIndex((v) => v === 'descriptionPlain');
     if (descIdx === -1)
       throw new Error(`Could not find description for job ${id}`);
@@ -115,7 +100,6 @@ export default class ShopifyScraper extends Scraper {
     return JSON.stringify({
       ...jobPosting,
       id,
-      title: arr[descIdx - 1] as string,
       descriptionPlain: arr[descIdx + 1] as string,
     });
   }
